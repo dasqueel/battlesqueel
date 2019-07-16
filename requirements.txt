@@ -1,0 +1,6 @@
+Flask
+gunicorn
+twitter
+pymongo
+dotenv
+pytz
