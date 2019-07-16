@@ -32,7 +32,7 @@ def getTeamTweets(beatWriters):
 				tweets.append({'tweet':s.text,'created_at':parse(s.created_at),'author':s.user.name,'urls':urls})
 
 		except:
-			print 'couldnt find tweets for: ', user
+			print('couldnt find tweets for: ', user)
 
 	tweets.sort(key=lambda item:item['created_at'], reverse=True)
 	now = datetime.datetime.now()

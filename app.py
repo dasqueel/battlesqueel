@@ -17,11 +17,10 @@ bsDb = mongoClient.battlesqueel
 
 # for team in bsDb.teams.find(): print team
 
-
 app = flask.Flask(__name__)
 app.secret_key = os.getenv('APP_SECRET')
 
-@app.route('/neil')
+@app.route('/')
 def home():
 	return render_template('index.html')
 
