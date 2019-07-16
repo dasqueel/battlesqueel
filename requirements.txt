@@ -2,5 +2,5 @@ Flask
 gunicorn
 twitter
 pymongo
-dotenv
+python-dotenv
 pytz
