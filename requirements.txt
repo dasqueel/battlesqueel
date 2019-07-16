@@ -4,3 +4,4 @@ twitter
 pymongo
 python-dotenv
 pytz
+beautifulsoup4
