@@ -6,3 +6,4 @@ python-dotenv
 pytz
 beautifulsoup4
 requests
+python-dateutil
