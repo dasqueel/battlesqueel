@@ -57,5 +57,10 @@ def game(gameId):
 	homeTeam['tweets'] = getTeamTweets(homeTeamTwitterList)
 	return render_template('game.html', homeTeam=homeTeam,awayTeam=awayTeam)
 
+@app.route('/radio/<string:abbr>')
+def radio(abbr):
+	team = bsDb['teams'].find_one({'abbr': abbr})
+	return jsonify({'radio' : team['radio']})
+
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=True)
