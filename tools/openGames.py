@@ -1,6 +1,25 @@
 from bs4 import BeautifulSoup
 import requests
 import sys
+from datetime import datetime
+from dateutil import tz
+import webbrowser
+
+firefox_path = 'open -a /Applications/Firefox.app %s'
+
+# helpers
+def formatGameTime(gameTime):
+
+  from_zone = tz.gettz('UTC')
+  to_zone = tz.gettz('America/Chicago')
+
+  utc = datetime.strptime(gameTime.replace('T', ' ').replace('Z',''), '%Y-%m-%d %H:%M')
+  utc = utc.replace(tzinfo=from_zone)
+
+  # Convert time zone
+  central = utc.astimezone(to_zone)
+
+  return central
 
 teamsMap = {
     "North Dakota": "ndsu",
@@ -139,7 +158,7 @@ teamsMap = {
 
 week = sys.argv[1]
 day = int(sys.argv[2]) # tu, w, th, f, sat OR 1 2 3 4
-# timeStart = sys.argv[3]
+timeStart = int(sys.argv[3])
 # timeEnd = sys.argv[4]
 
 espnUrl = 'https://www.espn.com/college-football/schedule/_/week/' + week
@@ -148,12 +167,9 @@ req = requests.get(espnUrl)
 
 soup = BeautifulSoup(req.text, 'html.parser')
 
-# print soup
-
 dayDivs = soup.findAll("table", {"class": "schedule has-team-logos align-left"})
 
 # get all trs in each dayDiv
-# dayDiv = dayDivs[0]
 dayDiv = dayDivs[day - 1]
 trs = dayDiv.findAll("tr")
 # first tr contains date information
@@ -163,15 +179,21 @@ for tr in trs:
   # print tr
   # teams are in spans
   spans = tr.findAll('span')
-  # print spans
+  shouldOpenGame = False
 
-  a = tr.find_all("a")
+  # a = tr.find_all("a")
+  tds = tr.find_all("td")
 
-  for x in a:
+  for td in tds:
     try:
-      print x.attrs['data-date']
+      gameTimeStr = td.attrs['data-date']
+      gameTimeObj = formatGameTime(gameTimeStr)
+      # print gameTimeObj.hour
+      if gameTimeObj.hour < timeStart:
+        shouldOpenGame = True
     except:
-      print 'nope'
+      # print 'nope'
+      pass
   # time = tr.findAll('a', {'data-dateformat': 'time1'})
   # if len(time) > 0:
     # z = time[0].text
@@ -189,15 +211,17 @@ for tr in trs:
         if i == 1: homeTeam = teamsMap[school]
     if homeTeam != '' and awayTeam != '':
       url = 'https://battlesqueel.herokuapp.com/' + awayTeam + '@' + homeTeam
+      if shouldOpenGame:
+        # webbrowser.get(firefox_path).open(url, new=0)
+        webbrowser.get(firefox_path).open_new_tab(url)
+        # webbrowser.register('firefox', None)
+        # webbrowser.get('firefox').open(url)
       # print url
 
 
 
 # print len(mydivs)
 # for div in mydivs: print div
-
-
-import webbrowser
 
 urls = ["https://si.com", "https://espn.com", "https://fast.com"]
 
