@@ -34,6 +34,9 @@
     >
     ---
     <a href="{{ homeTeam['espnUrl'] }}" target="_blank">espn</a>
+    {% for forum in homeTeam['forums'] %}
+    <a href="{{ forum }}" target="_blank">forum | </a>
+    {% endfor %}
     <div class="accordion">
       <h3>{{ homeTeam["abbr"] }} depth chart</h3>
       <div>
@@ -63,6 +66,9 @@
     >
     ---
     <a href="{{ awayTeam['espnUrl'] }}" target="_blank">espn</a>
+    {% for forum in awayTeam['forums'] %}
+    <a href="{{ forum }}" target="_blank">forum | </a>
+    {% endfor %}
     <div class="accordion">
       <h3>{{ awayTeam["abbr"] }} depth chart</h3>
       <div>

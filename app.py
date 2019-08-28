@@ -47,6 +47,9 @@ def game(gameId):
 
 	awayTeam['espnUrl'] = awayDoc['espnUrl']
 	homeTeam['espnUrl'] = homeDoc['espnUrl']
+	
+	awayTeam['fourms'] = awayDoc['forums']
+	homeTeam['forums'] = homeDoc['forums']
 
 	awayTeam['depthChart'] = Markup(getNCAADepthHtml(awayDoc['depthChart']))
 	homeTeam['depthChart'] = Markup(getNCAADepthHtml(homeDoc['depthChart']))
