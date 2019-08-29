@@ -34,6 +34,9 @@
     >
     ---
     <a href="{{ homeTeam['espnUrl'] }}" target="_blank">espn</a>
+    ---
+    <a href="{{ homeTeam['statsUrl'] }}" target="_blank">stats</a>
+    ---
     {% for forum in homeTeam['forums'] %}
     <a href="{{ forum }}" target="_blank">forum | </a>
     {% endfor %}
@@ -66,6 +69,9 @@
     >
     ---
     <a href="{{ awayTeam['espnUrl'] }}" target="_blank">espn</a>
+    ---
+    <a href="{{ awayTeam['statsUrl'] }}" target="_blank">stats</a>
+    ---
     {% for forum in awayTeam['forums'] %}
     <a href="{{ forum }}" target="_blank">forum | </a>
     {% endfor %}

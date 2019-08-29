@@ -34,8 +34,6 @@ def game(gameId):
 	awayDoc = bsDb['teams'].find_one({'abbr':awayTeam['abbr']})
 	homeDoc = bsDb['teams'].find_one({'abbr':homeTeam['abbr']})
 
-	# print awayDoc, homeDoc
-
 	awayTeam['sbnation'] = awayDoc['sbnation']
 	homeTeam['sbnation'] = homeDoc['sbnation']
 
@@ -47,9 +45,12 @@ def game(gameId):
 
 	awayTeam['espnUrl'] = awayDoc['espnUrl']
 	homeTeam['espnUrl'] = homeDoc['espnUrl']
-	
+
 	awayTeam['fourms'] = awayDoc['forums']
 	homeTeam['forums'] = homeDoc['forums']
+
+	awayTeam['statsUrl'] = awayDoc['statsUrl']
+	homeTeam['statsUrl'] = homeDoc['statsUrl']
 
 	awayTeam['depthChart'] = Markup(getNCAADepthHtml(awayDoc['depthChart']))
 	homeTeam['depthChart'] = Markup(getNCAADepthHtml(homeDoc['depthChart']))

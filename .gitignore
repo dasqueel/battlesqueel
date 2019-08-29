@@ -1,3 +1,5 @@
 .env
 config.py
 tools/test.py
+tools/editDB.py
+tools/streamer.py

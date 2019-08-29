@@ -159,7 +159,6 @@ teamsMap = {
 week = sys.argv[1]
 day = int(sys.argv[2]) # tu, w, th, f, sat OR 1 2 3 4
 timeStart = int(sys.argv[3])
-# timeEnd = sys.argv[4]
 
 espnUrl = 'https://www.espn.com/college-football/schedule/_/week/' + week
 
@@ -212,6 +211,7 @@ for tr in trs:
     if homeTeam != '' and awayTeam != '':
       url = 'https://battlesqueel.herokuapp.com/' + awayTeam + '@' + homeTeam
       if shouldOpenGame:
+        print 'hay'
         # webbrowser.get(firefox_path).open(url, new=0)
         webbrowser.get(firefox_path).open_new_tab(url)
         # webbrowser.register('firefox', None)
