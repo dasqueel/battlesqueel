@@ -7,3 +7,5 @@ pytz
 beautifulsoup4
 requests
 python-dateutil
+dnspython
+pymongo[srv]
