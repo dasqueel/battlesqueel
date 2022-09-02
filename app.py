@@ -67,7 +67,7 @@ def game(gameId):
     return render_template('game.html', homeTeam=homeTeam, awayTeam=awayTeam)
 
 
-@app.route('/radio/<string:abbr>')
+@app.route('/demcanes/radio/<string:abbr>')
 def radio(abbr):
     team = bsDb['teams'].find_one({'abbr': abbr})
     return jsonify({'radio': team['radio']})
@@ -75,4 +75,4 @@ def radio(abbr):
 
 # put the gui stuff in?
 if __name__ == '__main__':
-    app.run(debug=True, use_reloader=True)
+    app.run()
