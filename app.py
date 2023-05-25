@@ -1,7 +1,7 @@
 from flask import Markup, render_template, jsonify, Flask
 from pymongo import MongoClient
 from helpers.depthChart import *
-from helpers.twotter import *
+from helpers.tweeter import *
 import os
 from os.path import join, dirname
 from dotenv import load_dotenv
@@ -13,11 +13,9 @@ load_dotenv(dotenv_path)
 
 # connect to mongo
 mongoUrl = os.getenv('MONGO_URL')
-mongoClient = MongoClient(mongoUrl)
-# mongoClient = MongoClient('mongodb+srv://squeel:sports1578@cluster0.i6ili.mongodb.net/', tlsCAFile=ca)
-bsDb = mongoClient.bettor
+mongoClient = MongoClient(mongoUrl, tlsCAFile=ca)
 
-# for team in bsDb.teams.find(): print team
+bsDb = mongoClient.bettor
 
 app = Flask(__name__)
 app.secret_key = os.getenv('APP_SECRET')
@@ -26,7 +24,6 @@ app.secret_key = os.getenv('APP_SECRET')
 @app.route('/')
 def home():
     return render_template('index.html')
-
 
 @app.route('/<gameId>')
 def game(gameId):
@@ -73,6 +70,5 @@ def radio(abbr):
     return jsonify({'radio': team['radio']})
 
 
-# put the gui stuff in?
 if __name__ == '__main__':
     app.run()
