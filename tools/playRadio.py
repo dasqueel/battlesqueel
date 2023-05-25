@@ -5,8 +5,7 @@ from pipes import quote
 
 team = sys.argv[1]
 
-# url = 'https://battlesqueel.herokuapp.com/radio/' + team
-url = 'http://127.0.0.1:5000/radio/' + team
+url = 'https://battlesqueel.herokuapp.com/demcanes/radio/' + team
 r = requests.get(url)
 json = r.json()
 stations = json['radio']
@@ -23,6 +22,6 @@ if len(stations) > 0:
     cmd = 'echo %s' % (' '.join(quote(arg) for arg in args))
 
     os.system(cmd)
-    os.system('mplayer ' + stations[selection])
+    os.system('mplayer -speed 1.3 -af scaletempo ' + stations[selection])
 else:
     print('couldnt play radio station')

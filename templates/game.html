@@ -12,12 +12,12 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
     <script>
-      $(function() {
+      $(function () {
         $(".accordion").accordion({
           collapsible: true,
-          active: false
-        })
-      })
+          active: false,
+        });
+      });
     </script>
   </head>
 
@@ -36,20 +36,20 @@
     <a href="{{ homeTeam['espnUrl'] }}" target="_blank">espn</a>
     ---
     <a href="{{ homeTeam['statsUrl'] }}" target="_blank">stats</a>
-    ---
-    {% for forum in homeTeam['forums'] %}
+    --- {% for forum in homeTeam['forums'] %}
     <a href="{{ forum }}" target="_blank">forum | </a>
     {% endfor %}
     <div class="accordion">
       <h3>{{ homeTeam["abbr"] }} depth chart</h3>
-      <div>
-        {{ homeTeam["depthChart"] }}
-      </div>
+      <div>{{ homeTeam["depthChart"] }}</div>
     </div>
     <div id="tweets">
-      {% for tweet in homeTeam['tweets'][:25] %}
-      {{ tweet["tweet"] }} | {{ tweet["minsAgo"] }} {% for url in
-      tweet['urls']%}<a href="{{ url }}" target="_blank">url</a>{% endfor %}<br />
+      {% for tweet in homeTeam['tweets'][:25] %} {{ tweet["tweet"] }} | {{
+      tweet["minsAgo"] }} {% for url in tweet['urls']%}<a
+        href="{{ url }}"
+        target="_blank"
+        >url</a
+      >{% endfor %}<br />
       {% endfor %}
     </div>
 
@@ -71,20 +71,20 @@
     <a href="{{ awayTeam['espnUrl'] }}" target="_blank">espn</a>
     ---
     <a href="{{ awayTeam['statsUrl'] }}" target="_blank">stats</a>
-    ---
-    {% for forum in awayTeam['forums'] %}
+    --- {% for forum in awayTeam['forums'] %}
     <a href="{{ forum }}" target="_blank">forum | </a>
     {% endfor %}
     <div class="accordion">
       <h3>{{ awayTeam["abbr"] }} depth chart</h3>
-      <div>
-        {{ awayTeam["depthChart"] }}
-      </div>
+      <div>{{ awayTeam["depthChart"] }}</div>
     </div>
     <div id="tweets">
-      {% for tweet in awayTeam['tweets'][:25] %}
-      {{ tweet["tweet"] }} | {{ tweet["minsAgo"] }} {% for url in
-      tweet['urls']%}<a href="{{ url }}" target="_blank">url</a>{% endfor %}<br />
+      {% for tweet in awayTeam['tweets'][:25] %} {{ tweet["tweet"] }} | {{
+      tweet["minsAgo"] }} {% for url in tweet['urls']%}<a
+        href="{{ url }}"
+        target="_blank"
+        >url</a
+      >{% endfor %}<br />
       {% endfor %}
     </div>
   </body>
