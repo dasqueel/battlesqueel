@@ -18,7 +18,74 @@
           active: false,
         });
       });
+
+      function deleteBeatWriter(beatWriter, team) {
+        const url = new URL("http://127.0.0.1:5000/beatWriters");
+        const params = { team, beatWriter };
+        url.search = new URLSearchParams(params).toString();
+
+        fetch(url, { method: "DELETE" })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.text();
+          })
+          .then((data) => {
+            if (data === "success") {
+              alert("removed beat writer");
+            } else {
+              alert("didnt remove beat writer");
+            }
+          })
+          .catch((error) => {
+            console.error(
+              "There has been a problem with your fetch operation:",
+              error
+            );
+          });
+      }
+
+      function deleteNote(note, team, elementId) {
+        const url = new URL("http://127.0.0.1:5000/notes");
+        const params = { team, note };
+        url.search = new URLSearchParams(params).toString();
+
+        fetch(url, { method: "DELETE" })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.text();
+          })
+          .then((data) => {
+            if (data === "success") {
+              const element = document.getElementById(elementId);
+              if (element) {
+                element.parentNode.removeChild(element);
+              }
+            } else {
+              alert("nope sorry");
+            }
+          })
+          .catch((error) => {
+            console.error(
+              "There has been a problem with your fetch operation:",
+              error
+            );
+          });
+      }
     </script>
+    <style>
+      .flex-container {
+        display: flex;
+        flex-direction: row;
+      }
+      p {
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+    </style>
   </head>
 
   <body>
@@ -36,20 +103,47 @@
     <a href="{{ homeTeam['espnUrl'] }}" target="_blank">espn</a>
     ---
     <a href="{{ homeTeam['statsUrl'] }}" target="_blank">stats</a>
-    --- {% for forum in homeTeam['forums'] %}
-    <a href="{{ forum }}" target="_blank">forum | </a>
+    ---
+    {% for info in homeTeam['info'] %}
+      <a href="http://127.0.0.1:5000/get-file?path={{ info['path'] }}" target="_blank">{{info['title']}}</a> ---
     {% endfor %}
     <div class="accordion">
       <h3>{{ homeTeam["abbr"] }} depth chart</h3>
       <div>{{ homeTeam["depthChart"] }}</div>
     </div>
+    <div class="accordion">
+      <h3>Notes</h3>
+      <div>
+        {% for note in homeTeam['notes']%}
+        <div class="flex-container" id="{{note}}">
+          <p>{{note}}</p>
+          <b
+            onclick="deleteNote('{{ note }}', '{{homeTeam['abbr']}}', '{{note}}')"
+            >--</b
+          >
+        </div>
+        {% endfor %}
+      </div>
+    </div>
     <div id="tweets">
-      {% for tweet in homeTeam['tweets'][:25] %} {{ tweet["tweet"] }} | {{
-      tweet["minsAgo"] }} {% for url in tweet['urls']%}<a
-        href="{{ url }}"
-        target="_blank"
-        >url</a
-      >{% endfor %}<br />
+      {% for tweet in homeTeam['tweets'][:25] %}
+      <div class="flex-container">
+        <p>
+          {{ tweet["tweet"] }} | {{ tweet["minsAgo"] }} --
+          <a href='https://twitter.com/{{tweet["author"]}}' target="_blank"
+            >{{tweet["author"]}}</a
+          >
+          <p> | </p>
+        </p>
+        {%for url in tweet['urls']%}
+        <a href="{{ url }}" target="_blank">url</a>
+        {% endfor %}
+        <p
+          onclick="deleteBeatWriter('{{ tweet['author'] }}', '{{homeTeam['abbr']}}')"
+        >
+          **
+        </p>
+      </div>
       {% endfor %}
     </div>
 
@@ -71,20 +165,48 @@
     <a href="{{ awayTeam['espnUrl'] }}" target="_blank">espn</a>
     ---
     <a href="{{ awayTeam['statsUrl'] }}" target="_blank">stats</a>
-    --- {% for forum in awayTeam['forums'] %}
-    <a href="{{ forum }}" target="_blank">forum | </a>
+    ---
+    {% for info in awayTeam['info'] %}
+      <a href="http://127.0.0.1:5000/get-file?path={{ info['path'] }}" target="_blank">{{info['title']}}</a> ---
     {% endfor %}
     <div class="accordion">
       <h3>{{ awayTeam["abbr"] }} depth chart</h3>
       <div>{{ awayTeam["depthChart"] }}</div>
     </div>
+    <div class="accordion">
+      <h3>Notes</h3>
+      <div>
+        {% for note in awayTeam['notes']%}
+        <div class="flex-container" , id="{{note}}">
+          <p>{{note}}</p>
+          <b
+            onclick="deleteNote('{{ note }}', '{{awayTeam['abbr']}}', '{{note}}')"
+          >
+            --
+          </b>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
     <div id="tweets">
-      {% for tweet in awayTeam['tweets'][:25] %} {{ tweet["tweet"] }} | {{
-      tweet["minsAgo"] }} {% for url in tweet['urls']%}<a
-        href="{{ url }}"
-        target="_blank"
-        >url</a
-      >{% endfor %}<br />
+      {% for tweet in awayTeam['tweets'][:25] %}
+      <div class="flex-container">
+        <p>
+          {{ tweet["tweet"] }} | {{ tweet["minsAgo"] }} --
+          <a href='https://twitter.com/{{tweet["author"]}}' target="_blank"
+            >{{tweet["author"]}}</a
+          >
+          <p> | </p>
+        </p>
+        {%for url in tweet['urls']%}
+        <a href="{{ url }}" target="_blank">url</a>
+        {% endfor %}
+        <p
+          onclick="deleteBeatWriter('{{ tweet['author'] }}', '{{awayTeam['abbr']}}')"
+        >
+          **
+        </p>
+      </div>
       {% endfor %}
     </div>
   </body>

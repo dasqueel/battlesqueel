@@ -18,6 +18,7 @@ auth = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET)
 auth.set_access_token(ACCESS_TOKEN_KEY, ACCESS_TOKEN_SECRET)
 api = tweepy.API(auth, wait_on_rate_limit=True)
 
+
 def cleanTweetText(tweetTxt):
     words = tweetTxt.split(' ')
     words = list(filter(lambda a: a != '', words))
@@ -26,12 +27,15 @@ def cleanTweetText(tweetTxt):
 
     for word in words:
         try:
-            if word[0] != '@' and 'https://t.co' not in word: cleanTweetList.append(word)
-        except Exception as e: print(e)
+            if word[0] != '@' and 'https://t.co' not in word:
+                cleanTweetList.append(word)
+        except Exception as e:
+            print(e)
 
     cleanTweet = ' '.join(cleanTweetList)
 
     return cleanTweet
+
 
 def getTeamTweets(beatWriters):
     allTweets = []
@@ -41,10 +45,10 @@ def getTeamTweets(beatWriters):
             userTweets = api.user_timeline(screen_name=user, include_rts=False, exclude_replies=False, count=10)
             for tweet in userTweets:
                 tweetUrls = []
-                for url in tweet.entities['urls']: tweetUrls.append(url['url'])
-            
-                allTweets.append({'tweet': cleanTweetText(tweet.text), 'created_at': tweet.created_at, 'author': tweet.user.name, 'urls': tweetUrls})
+                for url in tweet.entities['urls']:
+                    tweetUrls.append(url['url'])
 
+                allTweets.append({'tweet': cleanTweetText(tweet.text), 'created_at': tweet.created_at, 'author': user, 'urls': tweetUrls})
 
         except Exception as e:
             print(e)
