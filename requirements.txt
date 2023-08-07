@@ -164,7 +164,6 @@ primePy==1.3
 protobuf==4.23.4
 psutil==5.9.5
 pulsar-client==3.2.0
-pyannote.audio @ https://github.com/pyannote/pyannote-audio/archive/refs/heads/develop.zip#sha256=4c249dca42562203f59a8d10206071f3f671bc87f174379d77b9e3df77f58e5e
 pyannote.core==5.0.0
 pyannote.database==5.0.1
 pyannote.metrics==3.2.1
