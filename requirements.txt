@@ -149,6 +149,7 @@ orjson==3.9.2
 overrides==7.3.1
 packaging==23.1
 pandas==2.0.3
+path==16.7.1
 pathy==0.10.2
 pdf2image==1.16.3
 pdfminer==20191125
@@ -257,6 +258,7 @@ torchvision==0.16.0.dev20230725
 tqdm==4.65.0
 traitlets==5.9.0
 transformers==4.30.2
+tweepy==4.14.0
 typer==0.9.0
 typing-inspect==0.9.0
 typing_extensions==4.7.1
