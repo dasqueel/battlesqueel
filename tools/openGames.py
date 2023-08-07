@@ -166,7 +166,7 @@ timeStart = int(sys.argv[3])
 
 espnUrl = 'https://www.espn.com/college-football/schedule/_/week/' + week
 
-print espnUrl
+print(espnUrl)
 
 req = requests.get(espnUrl)
 
@@ -220,7 +220,7 @@ for tr in trs:
         if homeTeam != '' and awayTeam != '':
             url = 'https://battlesqueel.herokuapp.com/' + awayTeam + '@' + homeTeam
             if shouldOpenGame:
-                print 'hay'
+                print('hay')
                 # webbrowser.get(firefox_path).open(url, new=0)
                 webbrowser.get(firefox_path).open_new_tab(url)
                 # webbrowser.register('firefox', None)
