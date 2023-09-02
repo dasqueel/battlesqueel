@@ -8,3 +8,4 @@ python_twitter==3.5
 pytz==2023.3
 Requests==2.31.0
 tweepy==4.14.0
+gunicorn==21.2.0
