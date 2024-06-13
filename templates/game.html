@@ -4,21 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ awayTeam["abbr"] }}@{{ homeTeam["abbr"] }}</title>
-    <link
-      rel="stylesheet"
-      href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css"
-    />
-    <link rel="stylesheet" href="/static/css/style.css" />
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <script>
-      $(function () {
-        $(".accordion").accordion({
-          collapsible: true,
-          active: false,
-        });
-      });
-
       function deleteBeatWriter(beatWriter, team) {
         const url = new URL("http://127.0.0.1:5000/beatWriters");
         const params = { team, beatWriter };
@@ -84,11 +71,14 @@
       p {
         margin-top: 0;
         margin-bottom: 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
       }
     </style>
   </head>
 
   <body>
+    <h3>{{homeTeam['abbr']}}</h3>
     <a href="{{ homeTeam['sbnation'] }}" target="_blank">sbnation</a> ---
     <a
       href="https://www.google.com/search?hl=en&gl=us&tbm=nws&authuser=0&as_qdr=w&q={{
@@ -104,53 +94,60 @@
     ---
     <a href="{{ homeTeam['statsUrl'] }}" target="_blank">stats</a>
     ---
-    {% for info in homeTeam['info'] %}
-      <a href="http://127.0.0.1:5000/get-file?path={{ info['path'] }}" target="_blank">{{info['title']}}</a> ---
-    {% endfor %}
-    <div class="accordion">
-      <h3>{{ homeTeam["abbr"] }} depth chart</h3>
-      <div>{{ homeTeam["depthChart"] }}</div>
-    </div>
-    <div class="accordion">
-      <h3>Notes</h3>
-      <div>
-        {% for note in homeTeam['notes']%}
-        <div class="flex-container" id="{{note}}">
-          <p>{{note}}</p>
-          <b
-            onclick="deleteNote('{{ note }}', '{{homeTeam['abbr']}}', '{{note}}')"
-            >--</b
-          >
+    <!-- {% for info in homeTeam['info'] %}
+      <a href="http://127.0.0.1:7000/trans/{{info['fileName']}}" target="_blank">{{info['fileName']}}</a> ---
+    {% endfor %} -->
+
+    <div class="accordion" id="accordionExample">
+      <div class="card">
+        <div class="card-header" id="headingOne">
+          <h2 class="mb-0">
+              <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                depth chart
+              </button>
+          </h2>
         </div>
-        {% endfor %}
+        <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
+            <div class="card-body">
+              <div>{{ homeTeam["depthChart"] }}</div>
+            </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header" id="headingTwo">
+          <h2 class="mb-0">
+              <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                  agg notes
+              </button>
+          </h2>
+        </div>
+        <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
+            <div class="card-body">
+              <p>{{ homeTeam['aggNotes'] }}</p>
+            </div>
+        </div>
+      </div>
+      <div class="card">
+          <div class="card-header" id="headingThree">
+              <h2 class="mb-0">
+                  <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                      transcripts
+                  </button>
+              </h2>
+          </div>
+          {% for fileDoc in homeTeam['fileNames'] %}
+            <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
+              <div class="card-body">
+                <a href="{{ngrokDomain}}/trans/{{fileDoc['path']}}" target="_blank">{{fileDoc['fileName']}}</a>
+              </div>
+            </div>
+          {% endfor %}
       </div>
     </div>
-    <div id="tweets">
-      {% for tweet in homeTeam['tweets'][:25] %}
-      <div class="flex-container">
-        <p>
-          {{ tweet["tweet"] }} | {{ tweet["minsAgo"] }} --
-          <a href='https://twitter.com/{{tweet["author"]}}' target="_blank"
-            >{{tweet["author"]}}</a
-          >
-          <p> | </p>
-        </p>
-        {%for url in tweet['urls']%}
-        <a href="{{ url }}" target="_blank">url</a>
-        {% endfor %}
-        <p
-          onclick="deleteBeatWriter('{{ tweet['author'] }}', '{{homeTeam['abbr']}}')"
-        >
-          **
-        </p>
-      </div>
-      {% endfor %}
-    </div>
-
     <br />
     <br />
     <br />
-
+    <h3>{{awayTeam['abbr']}}</h3>
     <a href="{{ awayTeam['sbnation'] }}" target="_blank">sbnation</a> ---
     <a
       href="https://www.google.com/search?hl=en&gl=us&tbm=nws&authuser=0&as_qdr=w&q={{
@@ -165,49 +162,61 @@
     <a href="{{ awayTeam['espnUrl'] }}" target="_blank">espn</a>
     ---
     <a href="{{ awayTeam['statsUrl'] }}" target="_blank">stats</a>
-    ---
-    {% for info in awayTeam['info'] %}
+    <!-- --- -->
+    <!-- {% for info in awayTeam['info'] %}
       <a href="http://127.0.0.1:5000/get-file?path={{ info['path'] }}" target="_blank">{{info['title']}}</a> ---
-    {% endfor %}
-    <div class="accordion">
-      <h3>{{ awayTeam["abbr"] }} depth chart</h3>
-      <div>{{ awayTeam["depthChart"] }}</div>
-    </div>
-    <div class="accordion">
-      <h3>Notes</h3>
-      <div>
-        {% for note in awayTeam['notes']%}
-        <div class="flex-container" , id="{{note}}">
-          <p>{{note}}</p>
-          <b
-            onclick="deleteNote('{{ note }}', '{{awayTeam['abbr']}}', '{{note}}')"
-          >
-            --
-          </b>
+    {% endfor %} -->
+
+    <div class="accordion" id="accordionExample">
+      <div class="card">
+        <div class="card-header" id="headingFour">
+          <h2 class="mb-0">
+              <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                depth chart
+              </button>
+          </h2>
         </div>
-        {% endfor %}
+        <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionExample">
+            <div class="card-body">
+              <div>{{ awayTeam["depthChart"] }}</div>
+            </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header" id="headingFive">
+          <h2 class="mb-0">
+              <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                  agg notes
+              </button>
+          </h2>
+        </div>
+        <div id="collapseFive" class="collapse" aria-labelledby="headingFive" data-parent="#accordionExample">
+            <div class="card-body">
+              <p>{{ awayTeam['aggNotes'] }}</p>
+            </div>
+        </div>
+      </div>
+      <div class="card">
+          <div class="card-header" id="headingSix">
+              <h2 class="mb-0">
+                  <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+                      transcripts
+                  </button>
+              </h2>
+          </div>
+          {% for fileDoc in awayTeam['fileNames'] %}
+            <div id="collapseSix" class="collapse" aria-labelledby="headingSix" data-parent="#accordionExample">
+              <div class="card-body">
+                <a href="{{ngrokDomain}}/trans/{{fileDoc['path']}}" target="_blank">{{fileDoc['fileName']}}</a>
+              </div>
+            </div>
+          {% endfor %}
       </div>
     </div>
-    <div id="tweets">
-      {% for tweet in awayTeam['tweets'][:25] %}
-      <div class="flex-container">
-        <p>
-          {{ tweet["tweet"] }} | {{ tweet["minsAgo"] }} --
-          <a href='https://twitter.com/{{tweet["author"]}}' target="_blank"
-            >{{tweet["author"]}}</a
-          >
-          <p> | </p>
-        </p>
-        {%for url in tweet['urls']%}
-        <a href="{{ url }}" target="_blank">url</a>
-        {% endfor %}
-        <p
-          onclick="deleteBeatWriter('{{ tweet['author'] }}', '{{awayTeam['abbr']}}')"
-        >
-          **
-        </p>
-      </div>
-      {% endfor %}
-    </div>
+
+  <!-- Bootstrap JS and dependencies -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   </body>
 </html>
