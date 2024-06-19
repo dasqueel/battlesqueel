@@ -1,0 +1,12 @@
+**Player Rank | Position | Player Name | Strengths | Weaknesses**
+---|---|---|---|---
+1 | EDGE | Ashton Jahadi | Elite pass rusher, strong against the run | -
+2 | CB | Quincy Riley | Lock-down cornerback, low missed tackle rate | -
+3 | WR | Colin Lacey | Exceptional after-the-catch ability, dynamic in space | -
+4 | S | Devin Neal | Versatile playmaker, excels in run support and ball coverage | -
+5 | G | Michael Gonzalez | Excellent pass protection, strong run blocker | -
+6 | LB | T.J. Quinn | Consistent and steady off-ball linebacker, navigates traffic well | -
+7 | CB | Corey Thornton | Experienced and productive, low completion percentage when targeted | -
+8 | OT | Monroe Mills | Proven production at the Power 5 level, versatility at tackle | -
+9 | WR | Jahmari Brooks | Talented receiver, big frame for vertical routes | Health concerns, struggled with injuries in 2023
+10 | QB | Tyler Shuck | Strong arm, athleticism | Staying healthy, creating fewer sacks than previous quarterback

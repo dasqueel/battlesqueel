@@ -3,3 +3,7 @@ config.py
 tools/test.py
 tools/editDB.py
 tools/streamer.py
+steele/
+_pycahce_/
+battlesqueel/
+helpers/

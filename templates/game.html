@@ -94,9 +94,9 @@
     ---
     <a href="{{ homeTeam['statsUrl'] }}" target="_blank">stats</a>
     ---
-    <!-- {% for info in homeTeam['info'] %}
-      <a href="http://127.0.0.1:7000/trans/{{info['fileName']}}" target="_blank">{{info['fileName']}}</a> ---
-    {% endfor %} -->
+    <a href="{{ homeTeam['steeleUrl'] }}" target="_blank">steele</a>
+    ---
+    <a href="{{ homeTeam['cfbDepthUrl'] }}" target="_blank">cfb depth</a>
 
     <div class="accordion" id="accordionExample">
       <div class="card">
@@ -135,10 +135,26 @@
                   </button>
               </h2>
           </div>
-          {% for fileDoc in homeTeam['fileNames'] %}
+          {% for fileDoc in homeTeam['tranFilesNames'] %}
             <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
               <div class="card-body">
                 <a href="{{ngrokDomain}}/trans/{{fileDoc['path']}}" target="_blank">{{fileDoc['fileName']}}</a>
+              </div>
+            </div>
+          {% endfor %}
+      </div>
+      <div class="card">
+          <div class="card-header" id="headingEight">
+              <h2 class="mb-0">
+                  <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
+                      summaries
+                  </button>
+              </h2>
+          </div>
+          {% for fileDoc in homeTeam['sumFilesNames'] %}
+            <div id="collapseEight" class="collapse" aria-labelledby="headingEight" data-parent="#accordionExample">
+              <div class="card-body">
+                <a href="{{ngrokDomain}}/sums/{{fileDoc['path']}}" target="_blank">{{fileDoc['fileName']}}</a>
               </div>
             </div>
           {% endfor %}
@@ -162,10 +178,10 @@
     <a href="{{ awayTeam['espnUrl'] }}" target="_blank">espn</a>
     ---
     <a href="{{ awayTeam['statsUrl'] }}" target="_blank">stats</a>
-    <!-- --- -->
-    <!-- {% for info in awayTeam['info'] %}
-      <a href="http://127.0.0.1:5000/get-file?path={{ info['path'] }}" target="_blank">{{info['title']}}</a> ---
-    {% endfor %} -->
+    ---
+    <a href="{{ awayTeam['steeleUrl'] }}" target="_blank">steele</a>
+    ---
+    <a href="{{ awayTeam['cfbDepthUrl'] }}" target="_blank">cfb depth</a>
 
     <div class="accordion" id="accordionExample">
       <div class="card">
@@ -204,10 +220,26 @@
                   </button>
               </h2>
           </div>
-          {% for fileDoc in awayTeam['fileNames'] %}
+          {% for fileDoc in awayTeam['tranFilesNames'] %}
             <div id="collapseSix" class="collapse" aria-labelledby="headingSix" data-parent="#accordionExample">
               <div class="card-body">
                 <a href="{{ngrokDomain}}/trans/{{fileDoc['path']}}" target="_blank">{{fileDoc['fileName']}}</a>
+              </div>
+            </div>
+          {% endfor %}
+      </div>
+      <div class="card">
+          <div class="card-header" id="headingSeven">
+              <h2 class="mb-0">
+                  <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+                      summaries
+                  </button>
+              </h2>
+          </div>
+          {% for fileDoc in awayTeam['sumFilesNames'] %}
+            <div id="collapseSeven" class="collapse" aria-labelledby="headingSeven" data-parent="#accordionExample">
+              <div class="card-body">
+                <a href="{{ngrokDomain}}/sums/{{fileDoc['path']}}" target="_blank">{{fileDoc['fileName']}}</a>
               </div>
             </div>
           {% endfor %}
