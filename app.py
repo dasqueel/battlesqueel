@@ -3,20 +3,16 @@ from pymongo import MongoClient
 from helpers.depthChart import *
 # from helpers.tweeter import *
 import os
-# from os.path import join, dirname
-# from dotenv import load_dotenv
 from pathlib import Path
-# import Path
 import certifi
-from utils import getTeamTrans
+from utils import getTeamTrans, getSteele, getTeamSums
 ca = certifi.where()
-
-# dotenv_path = join(dirname(__file__), '.env')
-# load_dotenv(dotenv_path)
 
 # connect to mongo
 mongoUrl = os.getenv('battlesqueelMongoUrl')
 transPath = os.getenv('transPath')
+sumsPath = os.getenv('sumsPath')
+steelePath = os.getenv('steelePath')
 ngrokDomain = os.getenv('ngrokDomain')
 mongoClient = MongoClient(mongoUrl, tlsCAFile=ca)
 
@@ -52,6 +48,9 @@ def game(gameId):
     awayTeam['espnUrl'] = awayDoc['espnUrl']
     homeTeam['espnUrl'] = homeDoc['espnUrl']
 
+    awayTeam['cfbDepthUrl'] = awayDoc['cfbDepthUrl']
+    homeTeam['cfbDepthUrl'] = homeDoc['cfbDepthUrl']
+
     awayTeam['fourms'] = awayDoc['forums']
     homeTeam['forums'] = homeDoc['forums']
 
@@ -69,35 +68,25 @@ def game(gameId):
     with open(f"aggNotes/{awayTeam['abbr']}.txt", 'r') as file:
         awayTeam['aggNotes'] = file.read()
 
-    # awayTeam['podTrans'] = awayDoc['podTrans']
-    # homeTeam['podTrans'] = homeDoc['podTrans']
-
     awayTeam['depthChart'] = Markup(getNCAADepthHtml(awayDoc['depthChart']))
     homeTeam['depthChart'] = Markup(getNCAADepthHtml(homeDoc['depthChart']))
 
-    # get teams tweets
     awayTeamTwitterList = awayDoc['beat']
     homeTeamTwitterList = homeDoc['beat']
     # awayTeam['tweets'] = getTeamTweets(awayTeamTwitterList)
     # homeTeam['tweets'] = getTeamTweets(homeTeamTwitterList)
 
-    # get podcast and pdf files
-    # magazinesFolderPath = '/Users/squeel/magazines/phil/2023/pdfs'
-    # magazineFiles = os.listdir(magazinesFolderPath)
+    awayTeam["tranFilesNames"] = getTeamTrans(awayTeam['abbr'])
+    homeTeam["tranFilesNames"] = getTeamTrans(homeTeam['abbr'])
 
-    awayTeam["fileNames"] = getTeamTrans(awayTeam['abbr'])
-    homeTeam["fileNames"] = getTeamTrans(homeTeam['abbr'])
-    # for f in magazineFiles:
-    #     if awayTeam['abbr'] in f:
-    #         newFileObj = {}
-    #         newFileObj['path'] = f"{magazinesFolderPath}/{f}"
-    #         newFileObj['title'] = f.split(".")[0]
-    #         awayFiles.append(newFileObj)
-    #     if homeTeam['abbr'] in f:
-    #         newFileObj = {}
-    #         newFileObj['path'] = f"{magazinesFolderPath}/{f}"
-    #         newFileObj['title'] = f.split(".")[0]
-    #         homeFiles.append(newFileObj)
+    awayTeam["sumFilesNames"] = getTeamSums(awayTeam['abbr'])
+    homeTeam["sumFilesNames"] = getTeamSums(homeTeam['abbr'])
+
+    awayTeam["steeleUrl"] = getSteele(awayTeam['abbr'])
+    homeTeam["steeleUrl"] = getSteele(homeTeam['abbr'])
+
+    # print(awayTeam['tranFilesNames'])
+    print(homeTeam['sumFilesNames'])
 
     return render_template('game.html', homeTeam=homeTeam, awayTeam=awayTeam, ngrokDomain=ngrokDomain)
 
@@ -105,7 +94,6 @@ def game(gameId):
 def radio(abbr):
     team = bsDb['teams'].find_one({'abbr': abbr})
     return jsonify({'radio': team['radio']})
-
 
 @app.route('/notes', methods=["DELETE"])
 def note():
@@ -121,7 +109,6 @@ def note():
         return("success")
     else:
         return("nope")
-
 
 @app.route('/beatWriters', methods=["DELETE"])
 def beatwriter():
@@ -140,13 +127,12 @@ def beatwriter():
     else:
         return("nope")
 
-
 @app.route('/get-file', methods=["GET"])
 def get_file():
     filePath = request.args.get('path')
     return send_file(f"{filePath}")
 
-@app.route('/trans/<filename>')
+@app.route('/colorTrans/<filename>')
 def serve_text_file(filename):
     try:
         # with open(os.path.join(transPath, filename), 'r') as file:
@@ -199,22 +185,148 @@ def serve_text_file(filename):
     except FileNotFoundError:
         abort(404)
 
-@app.route('/trans/<path:filename>', methods=['GET'])
-def serve_file(filename):
+@app.route('/trans2/<path:filename>', methods=['GET'])
+def serve_tran2_files(filename):
     BASE_DIR = transPath
     # Ensure the file path is safe and within the base directory
     safe_path = os.path.normpath(os.path.join(BASE_DIR, filename))
     if not safe_path.startswith(BASE_DIR):
         return abort(404)  # Prevent directory traversal attacks
 
-    # Get the directory and filename
     directory = os.path.dirname(safe_path)
     file_name = os.path.basename(safe_path)
 
     if not os.path.exists(safe_path):
-        return abort(404)  # File not found
+        return abort(404)
 
     return send_from_directory(directory, file_name)
+
+def highlight_words(content, words, color):
+    for word in words:
+        content = content.replace(word, f'<span style="color:{color}">{word}</span>')
+    return content
+
+@app.route('/trans/<path:filename>', methods=['GET'])
+def serve_tran_files(filename):
+    BASE_DIR = transPath
+    safe_path = os.path.normpath(os.path.join(BASE_DIR, filename))
+    if not safe_path.startswith(BASE_DIR):
+        return abort(404)  # Prevent directory traversal attacks
+
+    directory = os.path.dirname(safe_path)
+    file_name = os.path.basename(safe_path)
+
+    if not os.path.exists(safe_path):
+        return abort(404)
+
+    try:
+        with open(safe_path, 'r') as file:
+            content = file.read()
+        
+        orange_words = ["love", "like", "pick", "plus"]
+        blue_words = [
+            "amazing",
+            "brilliant",
+            "clean",
+            "clutch",
+            "dominant",
+            "excellent",
+            "exceptional",
+            "fantastic",
+            "flawless",
+            "great",
+            "impressive",
+            "incredible",
+            "outstanding",
+            "phenomenal",
+            "remarkable",
+            "solid",
+            "spectacular",
+            "stellar",
+            "strong",
+            "superb",
+            "talented",
+            "terrific",
+            "tremendous",
+            "unbeatable",
+            "unmatched",
+            "unstoppable"
+        ]
+        green_words = ["favorite", "best bet", "lock"]
+        red_words = [
+            "awful",
+            "bad",
+            "careless",
+            "disappointing",
+            "embarrassing",
+            "failure",
+            "ineffective",
+            "inexcusable",
+            "lazy",
+            "mediocre",
+            "mistake",
+            "poor",
+            "sloppy",
+            "subpar",
+            "terrible",
+            "unacceptable",
+            "uncoordinated",
+            "unimpressive",
+            "weak",
+            "bad",
+            "terrible",
+            "disaster"
+        ]
+
+
+        content = highlight_words(content, orange_words, 'orange')
+        content = highlight_words(content, red_words, 'red')
+        content = highlight_words(content, green_words, 'green')
+        content = highlight_words(content, blue_words, 'blue')
+
+        html_content = f'''
+        <html>
+            <style>
+                pre {{
+                    white-space: pre-wrap; /* CSS to allow word wrapping */
+                    word-wrap: break-word; /* Optional for breaking long words */
+                }}
+            </style>
+            <head>
+                <title>{filename}</title>
+            </head>
+            <body>
+                <pre>{content}</pre>
+            </body>
+        </html>
+        '''
+        return render_template_string(html_content)
+    except FileNotFoundError:
+        abort(404)
+
+@app.route('/sums/<path:filename>', methods=['GET'])
+def serve_sum_fimes(filename):
+    BASE_DIR = sumsPath
+    # Ensure the file path is safe and within the base directory
+    safe_path = os.path.normpath(os.path.join(BASE_DIR, filename))
+    if not safe_path.startswith(BASE_DIR):
+        return abort(404)  # Prevent directory traversal attacks
+
+    directory = os.path.dirname(safe_path)
+    file_name = os.path.basename(safe_path)
+
+    if not os.path.exists(safe_path):
+        return abort(404)
+
+    return send_from_directory(directory, file_name)
+
+@app.route('/steele/<path:filename>')
+def serve_steele(filename):
+    try:
+        print(steelePath, filename)
+        return send_from_directory('/home/squeel/dev/battlesqueel/steele', filename)
+    except FileNotFoundError:
+        abort(404)
 
 if __name__ == '__main__':
     app.run(port=7000, debug=True)
