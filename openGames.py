@@ -53,7 +53,7 @@ def getWeekGames(weekNum):
 def find_school_by_name(school_list, name):
     return next((school for school in school_list if school["schoolName"] == name), None)
 
-gamesList = getWeekGames(1)
+gamesList = getWeekGames(2)
 
 school_names = [
     {"schoolName": "Texas St.", "otherName": "Texas State"},
@@ -132,8 +132,8 @@ for game in gamesList:
 
     if awayTeamAbbr and homeTeamAbbr:
         gameUrl = f"http://127.0.0.1:7000/{awayTeamAbbr}@{homeTeamAbbr}"
-        # print(gameUrl)
+        print(gameUrl)
         gameUrls.append(gameUrl)
 
 print(len(gameUrls))
-open_urls_in_browser_with_max_tabs(gameUrls, max_tabs=40, browser_path=firefox_nightly_path)
+# open_urls_in_browser_with_max_tabs(gameUrls, max_tabs=40, browser_path=firefox_nightly_path)

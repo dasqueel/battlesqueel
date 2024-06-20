@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 import os
 import re
+import spacy
 
 mongoUrl = os.getenv('battlesqueelMongoUrl')
 ngrokDomain = os.getenv('ngrokDomain')
@@ -20,8 +21,6 @@ def createTeamAggNotesFile():
             file.write("")
 
     # print(teamsCol.count_documents({}))
-
-import os
 
 transPath = os.getenv('transPath')
 sumsPath = os.getenv('sumsPath')
@@ -70,6 +69,22 @@ def getTeamSums(teamAbbr):
 def getSteele(teamAbbr):
     return f"{ngrokDomain}/steele/{teamAbbr}.pdf"
 
+def extract_names_from_file(file_path):
+    # nlp = spacy.load("en_core_web_trf")
+    nlp = spacy.load("en_core_web_lg")
+
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+
+    doc = nlp(content)
+
+    names = [ent.text for ent in doc.ents if ent.label_ == "PERSON"]
+
+    return names
+
 if __name__ == "__main__":
-    matching_files = getTeamSums("neb")
-    print(matching_files)
+    # matching_files = getTeamSums("neb")
+    # print(matching_files)
+    file_path = f'{transPath}/betusCfbPicks/betusCfbPicks-06-20-Wf5FT1OCX8c-bsu.txt'
+    names = extract_names_from_file(file_path)
+    print(names)

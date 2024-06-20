@@ -5,7 +5,7 @@ from helpers.depthChart import *
 import os
 from pathlib import Path
 import certifi
-from utils import getTeamTrans, getSteele, getTeamSums
+from utils import getTeamTrans, getSteele, getTeamSums, extract_names_from_file
 ca = certifi.where()
 
 # connect to mongo
@@ -30,65 +30,64 @@ def home():
 def game(gameId):
     homeTeam = {}
     awayTeam = {}
-    # get each teams data
-    awayTeam['abbr'] = gameId.split('@')[0]
-    homeTeam['abbr'] = gameId.split('@')[1]
-    awayDoc = bsDb['teams'].find_one({'abbr': awayTeam['abbr']})
-    homeDoc = bsDb['teams'].find_one({'abbr': homeTeam['abbr']})
+    try:
+        awayTeam['abbr'] = gameId.split('@')[0]
+        homeTeam['abbr'] = gameId.split('@')[1]
 
-    awayTeam['sbnation'] = awayDoc['sbnation']
-    homeTeam['sbnation'] = homeDoc['sbnation']
+        awayDoc = bsDb['teams'].find_one({'abbr': awayTeam['abbr']})
+        homeDoc = bsDb['teams'].find_one({'abbr': homeTeam['abbr']})
 
-    awayTeam['school'] = awayDoc['school']
-    homeTeam['school'] = homeDoc['school']
+        awayTeam['sbnation'] = awayDoc['sbnation']
+        homeTeam['sbnation'] = homeDoc['sbnation']
 
-    awayTeam['nickname'] = awayDoc['nickname']
-    homeTeam['nickname'] = homeDoc['nickname']
+        awayTeam['school'] = awayDoc['school']
+        homeTeam['school'] = homeDoc['school']
 
-    awayTeam['espnUrl'] = awayDoc['espnUrl']
-    homeTeam['espnUrl'] = homeDoc['espnUrl']
+        awayTeam['nickname'] = awayDoc['nickname']
+        homeTeam['nickname'] = homeDoc['nickname']
 
-    awayTeam['cfbDepthUrl'] = awayDoc['cfbDepthUrl']
-    homeTeam['cfbDepthUrl'] = homeDoc['cfbDepthUrl']
+        awayTeam['espnUrl'] = awayDoc['espnUrl']
+        homeTeam['espnUrl'] = homeDoc['espnUrl']
 
-    awayTeam['fourms'] = awayDoc['forums']
-    homeTeam['forums'] = homeDoc['forums']
+        awayTeam['cfbDepthUrl'] = awayDoc['cfbDepthUrl']
+        homeTeam['cfbDepthUrl'] = homeDoc['cfbDepthUrl']
 
-    awayTeam['statsUrl'] = awayDoc['statsUrl']
-    homeTeam['statsUrl'] = homeDoc['statsUrl']
+        awayTeam['fourms'] = awayDoc['forums']
+        homeTeam['forums'] = homeDoc['forums']
 
-    awayTeam['notes'] = awayDoc['notes']
-    homeTeam['notes'] = homeDoc['notes']
+        awayTeam['statsUrl'] = awayDoc['statsUrl']
+        homeTeam['statsUrl'] = homeDoc['statsUrl']
 
-    awayTeam['aggNotes'] = awayDoc['notes']
-    homeTeam['aggNotes'] = homeDoc['notes']
+        awayTeam['notes'] = awayDoc['notes']
+        homeTeam['notes'] = homeDoc['notes']
 
-    with open(f"aggNotes/{homeTeam['abbr']}.txt", 'r') as file:
-        homeTeam['aggNotes'] = file.read()
-    with open(f"aggNotes/{awayTeam['abbr']}.txt", 'r') as file:
-        awayTeam['aggNotes'] = file.read()
+        awayTeam['aggNotes'] = awayDoc['notes']
+        homeTeam['aggNotes'] = homeDoc['notes']
 
-    awayTeam['depthChart'] = Markup(getNCAADepthHtml(awayDoc['depthChart']))
-    homeTeam['depthChart'] = Markup(getNCAADepthHtml(homeDoc['depthChart']))
+        with open(f"aggNotes/{homeTeam['abbr']}.txt", 'r') as file:
+            homeTeam['aggNotes'] = file.read()
+        with open(f"aggNotes/{awayTeam['abbr']}.txt", 'r') as file:
+            awayTeam['aggNotes'] = file.read()
 
-    awayTeamTwitterList = awayDoc['beat']
-    homeTeamTwitterList = homeDoc['beat']
-    # awayTeam['tweets'] = getTeamTweets(awayTeamTwitterList)
-    # homeTeam['tweets'] = getTeamTweets(homeTeamTwitterList)
+        awayTeam['depthChart'] = Markup(getNCAADepthHtml(awayDoc['depthChart']))
+        homeTeam['depthChart'] = Markup(getNCAADepthHtml(homeDoc['depthChart']))
 
-    awayTeam["tranFilesNames"] = getTeamTrans(awayTeam['abbr'])
-    homeTeam["tranFilesNames"] = getTeamTrans(homeTeam['abbr'])
+        awayTeamTwitterList = awayDoc['beat']
+        homeTeamTwitterList = homeDoc['beat']
+        # awayTeam['tweets'] = getTeamTweets(awayTeamTwitterList)
+        # homeTeam['tweets'] = getTeamTweets(homeTeamTwitterList)
 
-    awayTeam["sumFilesNames"] = getTeamSums(awayTeam['abbr'])
-    homeTeam["sumFilesNames"] = getTeamSums(homeTeam['abbr'])
+        awayTeam["tranFilesNames"] = getTeamTrans(awayTeam['abbr'])
+        homeTeam["tranFilesNames"] = getTeamTrans(homeTeam['abbr'])
 
-    awayTeam["steeleUrl"] = getSteele(awayTeam['abbr'])
-    homeTeam["steeleUrl"] = getSteele(homeTeam['abbr'])
+        awayTeam["sumFilesNames"] = getTeamSums(awayTeam['abbr'])
+        homeTeam["sumFilesNames"] = getTeamSums(homeTeam['abbr'])
 
-    # print(awayTeam['tranFilesNames'])
-    print(homeTeam['sumFilesNames'])
+        awayTeam["steeleUrl"] = getSteele(awayTeam['abbr'])
+        homeTeam["steeleUrl"] = getSteele(homeTeam['abbr'])
 
-    return render_template('game.html', homeTeam=homeTeam, awayTeam=awayTeam, ngrokDomain=ngrokDomain)
+        return render_template('game.html', homeTeam=homeTeam, awayTeam=awayTeam, ngrokDomain=ngrokDomain)
+    except:pass
 
 @app.route('/demcanes/radio/<string:abbr>')
 def radio(abbr):
@@ -115,7 +114,7 @@ def beatwriter():
     team = request.args.get("team")
     beatWriter = request.args.get("beatWriter")
 
-    print(team, beatWriter)
+    # print(team, beatWriter)
 
     result = bsDb["teams"].update_one(
         {"abbr": team},
@@ -131,59 +130,6 @@ def beatwriter():
 def get_file():
     filePath = request.args.get('path')
     return send_file(f"{filePath}")
-
-@app.route('/colorTrans/<filename>')
-def serve_text_file(filename):
-    try:
-        # with open(os.path.join(transPath, filename), 'r') as file:
-        with open("/home/squeel/dev/summy/diarizedTranscripts/workerbee/workerbee-navy.txt", 'r') as file:
-            content = file.read()
-        
-        blue_words = [
-            "love",
-            "like",
-            "pick",
-        ]
-
-        red_words = [
-            "best bet",
-            "lock"
-        ]
-
-        green_words = [
-            "favorite"
-        ]
-
-        # Function to replace words with colored spans
-        def highlight_words(content, words, color):
-            for word in words:
-                content = content.replace(word, f'<span style="color:{color}">{word}</span>')
-            return content
-
-        # Highlight the words with different colors
-        content = highlight_words(content, blue_words, 'blue')
-        content = highlight_words(content, red_words, 'red')
-        content = highlight_words(content, green_words, 'green')
-
-        html_content = f'''
-        <html>
-            <style>
-                pre {{
-                    white-space: pre-wrap; /* CSS to allow word wrapping */
-                    word-wrap: break-word; /* Optional for breaking long words */
-                }}
-            </style>
-        <head>
-            <title>{filename}</title>
-        </head>
-        <body>
-            <pre>{content}</pre>
-        </body>
-        </html>
-        '''
-        return render_template_string(html_content)
-    except FileNotFoundError:
-        abort(404)
 
 @app.route('/trans2/<path:filename>', methods=['GET'])
 def serve_tran2_files(filename):
@@ -215,6 +161,7 @@ def serve_tran_files(filename):
 
     directory = os.path.dirname(safe_path)
     file_name = os.path.basename(safe_path)
+    full_file_path = f"{directory}/{file_name}"
 
     if not os.path.exists(safe_path):
         return abort(404)
@@ -250,14 +197,19 @@ def serve_tran_files(filename):
             "tremendous",
             "unbeatable",
             "unmatched",
-            "unstoppable"
+            "unstoppable",
+            "dominat",
+            "clutch",
+            "consistent",
+            "underrat",
+            "really good",
         ]
         green_words = ["favorite", "best bet", "lock"]
         red_words = [
             "awful",
             "bad",
             "careless",
-            "disappointing",
+            "disappoint",
             "embarrassing",
             "failure",
             "ineffective",
@@ -274,26 +226,66 @@ def serve_tran_files(filename):
             "unimpressive",
             "weak",
             "bad",
-            "terrible",
-            "disaster"
+            "terribl",
+            "disaster",
+            "struggl",
+            "underwhelm",
+            "frustrat",
+            "mediocre",
+            "weak",
+            "inconsistent",
+            "injur",
+            "hurt",
+            "out for",
+            "overrat",
+            "really bad",
+            "couldn't stop",
+            "could no stop"
         ]
-
+        playerNames = extract_names_from_file(full_file_path)
 
         content = highlight_words(content, orange_words, 'orange')
         content = highlight_words(content, red_words, 'red')
         content = highlight_words(content, green_words, 'green')
         content = highlight_words(content, blue_words, 'blue')
+        content = highlight_words(content, playerNames, 'purple')
 
         html_content = f'''
         <html>
-            <style>
-                pre {{
-                    white-space: pre-wrap; /* CSS to allow word wrapping */
-                    word-wrap: break-word; /* Optional for breaking long words */
-                }}
-            </style>
             <head>
                 <title>{filename}</title>
+                <style>
+                    body {{
+                        font-family: Arial, sans-serif;
+                        margin: 20px;
+                        line-height: 1.6;
+                    }}
+                    pre {{
+                        white-space: pre-wrap; /* CSS to allow word wrapping */
+                        word-wrap: break-word; /* Optional for breaking long words */
+                        background-color: #f4f4f4;
+                        padding: 20px;
+                        border-radius: 5px;
+                        border: 1px solid #ddd;
+                    }}
+                    span[style*="color: orange"] {{
+                        font-weight: bold;
+                    }}
+                    span[style*="color: red"] {{
+                        font-weight: bold;
+                        text-decoration: underline;
+                    }}
+                    span[style*="color: green"] {{
+                        font-weight: bold;
+                        text-decoration: underline;
+                        background-color: #e0ffe0;
+                    }}
+                    span[style*="color: blue"] {{
+                        font-weight: bold;
+                        text-decoration: underline;
+                        background-color: #e0f7ff;
+                    }}
+                </style>
             </head>
             <body>
                 <pre>{content}</pre>
@@ -323,7 +315,6 @@ def serve_sum_fimes(filename):
 @app.route('/steele/<path:filename>')
 def serve_steele(filename):
     try:
-        print(steelePath, filename)
         return send_from_directory('/home/squeel/dev/battlesqueel/steele', filename)
     except FileNotFoundError:
         abort(404)

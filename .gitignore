@@ -6,4 +6,8 @@ tools/streamer.py
 steele/
 _pycahce_/
 battlesqueel/
-helpers/
+*.pyc
+test.html
+gameOld.html
+launch.json
+test.py
