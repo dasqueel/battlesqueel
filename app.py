@@ -6,6 +6,8 @@ import os
 from pathlib import Path
 import certifi
 from utils import getTeamTrans, getSteele, getTeamSums, extract_names_from_file
+from openGames import getWeekGamesUrls, getWeekGames
+from openWeather import getCurrentWeather
 ca = certifi.where()
 
 # connect to mongo
@@ -25,6 +27,45 @@ app.secret_key = os.getenv('APP_SECRET')
 @app.route('/')
 def home():
     return render_template('index.html')
+
+@app.route('/gameUrls/<int:weekNum>', methods=['GET'])
+def game_urls(weekNum):
+    gamesList = getWeekGames(weekNum)
+    urls = getWeekGamesUrls(gamesList)
+    html_content = '''
+    <html>
+        <head>
+            <title>Game URLs for Week {{ weekNum }}</title>
+            <style>
+                table {
+                    width: 50%;
+                    margin: 20px auto;
+                    border-collapse: collapse;
+                }
+                th, td {
+                    padding: 10px;
+                    border: 1px solid #ddd;
+                    text-align: left;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Game URLs for Week {{ weekNum }}</h1>
+            <table>
+                <tr>
+                    <th>URL</th>
+                </tr>
+                {% for url in urls %}
+                <tr>
+                    <td><a href="{{ url }}" target="_blank">{{ url }}</a></td>
+                </tr>
+                {% endfor %}
+            </table>
+        </body>
+    </html>
+    '''
+    
+    return render_template_string(html_content, weekNum=weekNum, urls=urls)
 
 @app.route('/<gameId>')
 def game(gameId):
@@ -86,7 +127,12 @@ def game(gameId):
         awayTeam["steeleUrl"] = getSteele(awayTeam['abbr'])
         homeTeam["steeleUrl"] = getSteele(homeTeam['abbr'])
 
-        return render_template('game.html', homeTeam=homeTeam, awayTeam=awayTeam, ngrokDomain=ngrokDomain)
+        currentWeather = getCurrentWeather(homeTeam['school'])
+
+        if currentWeather:
+            return render_template('game.html', homeTeam=homeTeam, awayTeam=awayTeam, currentWeather=currentWeather, ngrokDomain=ngrokDomain)
+        else:
+            return render_template('game.html', homeTeam=homeTeam, awayTeam=awayTeam, currentWeather=None, ngrokDomain=ngrokDomain)
     except:pass
 
 @app.route('/demcanes/radio/<string:abbr>')
@@ -174,8 +220,10 @@ def serve_tran_files(filename):
         blue_words = [
             "amazing",
             "brilliant",
+            "best",
             "clean",
             "clutch",
+            "consistent",
             "dominant",
             "excellent",
             "exceptional",
@@ -187,6 +235,7 @@ def serve_tran_files(filename):
             "outstanding",
             "phenomenal",
             "remarkable",
+            "really good",
             "solid",
             "spectacular",
             "stellar",
@@ -198,49 +247,44 @@ def serve_tran_files(filename):
             "unbeatable",
             "unmatched",
             "unstoppable",
-            "dominat",
-            "clutch",
-            "consistent",
             "underrat",
-            "really good",
         ]
         green_words = ["favorite", "best bet", "lock"]
         red_words = [
             "awful",
             "bad",
+            "banged up",
             "careless",
+            "couldn't stop",
+            "could not stop"
             "disappoint",
+            "disaster",
             "embarrassing",
             "failure",
+            "frustrat",
+            "hurt",
             "ineffective",
             "inexcusable",
+            "inconsistent",
+            "injur",
             "lazy",
             "mediocre",
             "mistake",
+            "nose bleed",
+            "out for",
+            "overrat",
             "poor",
+            "really bad",
             "sloppy",
+            "struggl",
             "subpar",
-            "terrible",
+            "terribl",
             "unacceptable",
+            "underwhelm",
             "uncoordinated",
             "unimpressive",
             "weak",
-            "bad",
-            "terribl",
-            "disaster",
-            "struggl",
-            "underwhelm",
-            "frustrat",
-            "mediocre",
-            "weak",
-            "inconsistent",
-            "injur",
-            "hurt",
-            "out for",
-            "overrat",
-            "really bad",
-            "couldn't stop",
-            "could no stop"
+            "worst",
         ]
         playerNames = extract_names_from_file(full_file_path)
 

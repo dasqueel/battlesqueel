@@ -137,34 +137,28 @@ fbs_stadiums_dict = {
     'James Madison': {'latitude': 38.4393, 'longitude': -78.8769},
     'UMass': {'latitude': 42.3900, 'longitude': -72.5301}
 }
-
 openWeatherKey = os.getenv('openWeatherKey')
-# print(openWeatherKey)
-team = 'Wyoming'
-lat=fbs_stadiums_dict[team]['latitude']
-lon=fbs_stadiums_dict[team]['longitude']
 
-url = f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={openWeatherKey}&units=imperial'
-response = requests.get(url)
+def getCurrentWeather(team):
+    lat=fbs_stadiums_dict[team]['latitude']
+    lon=fbs_stadiums_dict[team]['longitude']
 
-json = response.json()
-wind = json['wind']
-main = json['main']
-weather = json['weather']
+    print(lat, lon)
 
-pprint.pprint(main)
-pprint.pprint(wind)
-pprint.pprint(weather)
+    url = f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={openWeatherKey}&units=imperial'
+    response = requests.get(url)
+    json = response.json()
+    wind = json['wind']
+    main = json['main']
+    weather = json['weather']
 
-# dicts = [wind, main]
-# for d in weather: dicts.append(d)
+    finalDict = {
+        "wind": wind,
+        "main": main,
+        "weather": weather
+    }
 
-# print(dicts)
-# combined_dict = {}
-# for d in dicts:
-#     combined_dict.update(d)
-
-# pprint.pprint(combined_dict)
+    return finalDict
 
 def createStadiumMap():
     import folium
@@ -182,3 +176,7 @@ def createStadiumMap():
 
     # Save the map to an HTML file
     map_fbs.save('fbs_stadiums_map.html')
+
+if __name__ == "__main__":
+    currentWeather = getCurrentWeather("Wyoming")
+    print(currentWeather)
