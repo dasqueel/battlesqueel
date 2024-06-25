@@ -135,6 +135,20 @@ def game(gameId):
             return render_template('game.html', homeTeam=homeTeam, awayTeam=awayTeam, currentWeather=None, ngrokDomain=ngrokDomain)
     except:pass
 
+@app.route('/team/<teamAbbr>')
+def team(teamAbbr):
+    try:
+        teamDoc = bsDb['teams'].find_one({'abbr': teamAbbr})
+        with open(f"aggNotes/{teamAbbr}.txt", 'r') as file:
+            teamDoc['aggNotes'] = file.read()
+        teamDoc['depthChart'] = Markup(getNCAADepthHtml(teamDoc['depthChart']))
+        teamDoc["tranFilesNames"] = getTeamTrans(teamAbbr)
+        teamDoc["sumFilesNames"] = getTeamSums(teamAbbr)
+        teamDoc["steeleUrl"] = getSteele(teamAbbr)
+
+        return render_template('team.html', team=teamDoc, ngrokDomain=ngrokDomain)
+    except:pass
+
 @app.route('/demcanes/radio/<string:abbr>')
 def radio(abbr):
     team = bsDb['teams'].find_one({'abbr': abbr})
