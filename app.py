@@ -20,6 +20,7 @@ mongoClient = MongoClient(mongoUrl, tlsCAFile=ca)
 
 bsDb = mongoClient.bettor
 podTransCol = bsDb['podTrans']
+cfbPlayersCol = bsDb['cfbPlayers']
 
 app = Flask(__name__)
 app.secret_key = os.getenv('APP_SECRET')
@@ -109,12 +110,12 @@ def game(gameId):
             homeTeam['aggNotes'] = file.read()
         with open(f"aggNotes/{awayTeam['abbr']}.txt", 'r') as file:
             awayTeam['aggNotes'] = file.read()
+        
+        awayTeam['depthChart'] = Markup(getNCAADepthHtml(awayDoc['depthChart'], awayDoc['abbr'], awayDoc['pffTeamName']))
+        homeTeam['depthChart'] = Markup(getNCAADepthHtml(homeDoc['depthChart'], homeDoc['abbr'], homeDoc['pffTeamName']))
 
-        awayTeam['depthChart'] = Markup(getNCAADepthHtml(awayDoc['depthChart']))
-        homeTeam['depthChart'] = Markup(getNCAADepthHtml(homeDoc['depthChart']))
-
-        awayTeamTwitterList = awayDoc['beat']
-        homeTeamTwitterList = homeDoc['beat']
+        # awayTeamTwitterList = awayDoc['beat']
+        # homeTeamTwitterList = homeDoc['beat']
         # awayTeam['tweets'] = getTeamTweets(awayTeamTwitterList)
         # homeTeam['tweets'] = getTeamTweets(homeTeamTwitterList)
 
@@ -137,17 +138,18 @@ def game(gameId):
 
 @app.route('/team/<teamAbbr>')
 def team(teamAbbr):
-    try:
-        teamDoc = bsDb['teams'].find_one({'abbr': teamAbbr})
-        with open(f"aggNotes/{teamAbbr}.txt", 'r') as file:
-            teamDoc['aggNotes'] = file.read()
-        teamDoc['depthChart'] = Markup(getNCAADepthHtml(teamDoc['depthChart']))
-        teamDoc["tranFilesNames"] = getTeamTrans(teamAbbr)
-        teamDoc["sumFilesNames"] = getTeamSums(teamAbbr)
-        teamDoc["steeleUrl"] = getSteele(teamAbbr)
+    pffPlayers = cfbPlayersCol.find({"team_name":"miami fl"}, {"name":1, "_id":0})
+    pffPlayers = [doc['name'] for doc in pffPlayers]
 
-        return render_template('team.html', team=teamDoc, ngrokDomain=ngrokDomain)
-    except:pass
+    teamDoc = bsDb['teams'].find_one({'abbr': teamAbbr})
+    with open(f"aggNotes/{teamAbbr}.txt", 'r') as file:
+        teamDoc['aggNotes'] = file.read()
+    teamDoc['depthChart'] = Markup(getNCAADepthHtml(teamDoc['depthChart'], teamDoc['abbr'], teamDoc['pffTeamName']))
+    teamDoc["tranFilesNames"] = getTeamTrans(teamAbbr)
+    teamDoc["sumFilesNames"] = getTeamSums(teamAbbr)
+    teamDoc["steeleUrl"] = getSteele(teamAbbr)
+
+    return render_template('team.html', team=teamDoc, ngrokDomain=ngrokDomain)
 
 @app.route('/demcanes/radio/<string:abbr>')
 def radio(abbr):

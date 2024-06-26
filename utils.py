@@ -1,13 +1,22 @@
-from pymongo import MongoClient
+from pymongo import MongoClient, errors
 import os
 import re
 import spacy
+import json
+import pprint
+from bs4 import BeautifulSoup
+import requests
+from rapidfuzz import fuzz
+import time
 
 mongoUrl = os.getenv('battlesqueelMongoUrl')
 ngrokDomain = os.getenv('ngrokDomain')
 mongoClient = MongoClient(mongoUrl)
 bsDb = mongoClient.bettor
 teamsCol = bsDb['teams']
+cfbPlayersCol = bsDb['cfbPlayers']
+
+cfbPlayersCol.create_index("id", unique=True)
 
 def createTeamAggNotesFile():
     teamDocs = teamsCol.find()
@@ -82,9 +91,205 @@ def extract_names_from_file(file_path):
 
     return names
 
+def insertPlayersMongo(position):
+    with open(f'./json/{position}.json', 'r') as file:
+        players = json.load(file)
+
+    keysRemove = ["college", "age", "current_eligible_year", "meets_snap_minimum", "team_slug", "jersey_number"]
+
+    for player in players:
+        player["position"] = player["position"].lower()
+        player["grade_position"] = player["grade_position"].lower()
+        player["team_name"] = player["team_name"].lower()
+        player["name"] = player["name"].lower()
+        for key in keysRemove:
+            if key in player:
+                del player[key]
+
+    # cfbPlayersCol.insert_many(players)
+
+def extract_full_name(player):
+    suffix_pattern = re.compile(r'\s+(RS\s+)?(SR|JR|SO|FR|GR)(/TR)?$', re.IGNORECASE)
+    player = suffix_pattern.sub('', player)
+    if ', ' in player:
+        last_name, first_name = player.split(', ')
+        return f"{first_name} {last_name}"
+    else:
+        return player
+
+def getOurlandsPlayersObjsDirtyClean(teamDepthUrl):
+    r = requests.get(teamDepthUrl)
+    soup = BeautifulSoup(r.text, 'html.parser')
+
+    td_tags = soup.find_all('td')
+    playerTdEls = [td for td in td_tags if td.find('a') and ',' in td.find('a').text]
+
+    cleanDirtyOurLadObjs = []
+
+    for td in playerTdEls:
+        dirtyPlayerTxt = td.get_text()
+        try:
+            cleanName = extract_full_name(dirtyPlayerTxt)
+            cleanDirtyObj = {}
+            cleanDirtyObj['clean'] = cleanName
+            cleanDirtyObj['dirty'] = dirtyPlayerTxt
+            if cleanDirtyObj not in cleanDirtyOurLadObjs:
+                cleanDirtyOurLadObjs.append(cleanDirtyObj)
+        except:
+            print(f"error: {dirtyPlayerTxt}")
+            # if dirtyPlayerTxt not in ourlandPlayers:
+            #     ourlandPlayers.append(dirtyPlayerTxt)
+
+    return(cleanDirtyOurLadObjs)
+
+def getPffPlayerObj(olDirtyName, teamAbbr, pffTeamName):
+    teamDoc = teamsCol.find_one({"abbr":teamAbbr})
+    playerNamesTranslationsObjs= teamDoc['olPffNames']
+    pffPlayerNameObj = next((d for d in playerNamesTranslationsObjs if d.get("olDirty") == olDirtyName), None)
+
+    pffPlayerObj = cfbPlayersCol.find_one({"team_name": pffTeamName, "name": pffPlayerNameObj['pff']})
+
+    playerPos = pffPlayerObj['position']
+
+    if playerPos == 'qb':
+        pffPlayerObj['gradesToShow'] = {
+            'O' : pffPlayerObj['offense'],
+            'P' : pffPlayerObj['pass'],
+            # 'pass_snaps' : pffPlayerObj['pass_snaps'],
+            'R' : pffPlayerObj['run'],
+            # 'run_snaps' : pffPlayerObj['run_snaps'],
+        }
+    elif playerPos == 'hb':
+        pffPlayerObj['gradesToShow'] = {
+            'O' : pffPlayerObj['offense'],
+            # 'overall_snaps' : pffPlayerObj['overall_snaps'],
+            'Run' : pffPlayerObj['run'],
+            # 'run_snaps' : pffPlayerObj['run_snaps'],
+            'Rec' : pffPlayerObj['receiving'],
+            # 'receiving_snaps' : pffPlayerObj['receiving_snaps'],
+            'PB' : pffPlayerObj['pass_block'],
+            # 'pass_block_snaps' : pffPlayerObj['pass_block_snaps'],
+        }
+    elif playerPos == 'wr':
+        pffPlayerObj['gradesToShow'] = {
+            'O' : pffPlayerObj['offense'],
+            # 'overall_snaps' : pffPlayerObj['overall_snaps'],
+            'Rec' : pffPlayerObj['receiving'],
+            # 'receiving_snaps' : pffPlayerObj['receiving_snaps'],
+            'RB' : pffPlayerObj['run_block'],
+            # 'run_block_snaps' : pffPlayerObj['run_block_snaps'],
+        }
+    elif playerPos == 'te':
+        pffPlayerObj['gradesToShow'] = {
+            'O' : pffPlayerObj['offense'],
+            # 'overall_snaps' : pffPlayerObj['overall_snaps'],
+            'Rec' : pffPlayerObj['receiving'],
+            # 'receiving_snaps' : pffPlayerObj['receiving_snaps'],
+            'RB' : pffPlayerObj['run_block'],
+            # 'run_block_snaps' : pffPlayerObj['run_block_snaps'],
+        }
+    elif playerPos == 't' or playerPos == 'g' or playerPos == 'c':
+        pffPlayerObj['gradesToShow'] = {
+            'O' : pffPlayerObj['offense'],
+            # 'overall_snaps' : pffPlayerObj['overall_snaps'],
+            # 'Rank' : pffPlayerObj['offense_ranked'],
+            'PB' : pffPlayerObj['pass_block'],
+            # 'pass_block_snaps' : pffPlayerObj['pass_block_snaps'],
+            'RB' : pffPlayerObj['run_block'],
+            # 'run_block_snaps' : pffPlayerObj['run_block_snaps'],
+        }
+    elif playerPos == 'di' or playerPos == 'ed':
+        pffPlayerObj['gradesToShow'] = {
+            'D' : pffPlayerObj['defense'],
+            # 'defense_snaps' : pffPlayerObj['defense_snaps'],
+            # 'Rank' : pffPlayerObj['defense_ranked'],
+            'RD' : pffPlayerObj['run_defense'],
+            # 'run_defense_snaps' : pffPlayerObj['run_defense_snaps'],
+            'PR' : pffPlayerObj['pass_rush'],
+            # 'pass_rush_snaps' : pffPlayerObj['pass_rush_snaps'],
+        }
+    elif playerPos == 'lb':
+        pffPlayerObj['gradesToShow'] = {
+            'D' : pffPlayerObj['defense'],
+            # 'defense_snaps' : pffPlayerObj['defense_snaps'],
+            # 'Rank' : pffPlayerObj['defense_ranked'],
+            'RD' : pffPlayerObj['run_defense'],
+            # 'run_defense_snaps' : pffPlayerObj['run_defense_snaps'],
+            'PR' : pffPlayerObj['pass_rush'],
+            # 'pass_rush_snaps' : pffPlayerObj['pass_rush_snaps'],
+            'C' : pffPlayerObj['coverage'],
+            # 'coverage_snaps' : pffPlayerObj['coverage_snaps'],
+        }
+    elif playerPos == 'cb' or playerPos == 's':
+        pffPlayerObj['gradesToShow'] = {
+            'D' : pffPlayerObj['defense'],
+            # 'defense_snaps' : pffPlayerObj['defense_snaps'],
+            # 'Rank' : pffPlayerObj['defense_ranked'],
+            'C' : pffPlayerObj['coverage'],
+            # 'coverage_snaps' : pffPlayerObj['coverage_snaps'],
+            'RD' : pffPlayerObj['run_defense'],
+            # 'run_defense_snaps' : pffPlayerObj['run_defense_snaps'],
+        }
+    elif playerPos == 'k':
+        pffPlayerObj['gradesToShow'] = {
+            'K' : pffPlayerObj['fg_ep_kicker'],
+            'KO' : pffPlayerObj['kickoff_kicker'],
+        }
+    elif playerPos == 'p':
+        pffPlayerObj['gradesToShow'] = {
+            'P' : pffPlayerObj['punter'],
+            'Rank' : pffPlayerObj['punter_rank'],
+        }
+    
+    return(pffPlayerObj)
+
+def joinPffOurlandsAndInsert(teamPff, teamAbbr, teamDepthUrl):
+    ourlandsPlayersObjsDirtyClean = getOurlandsPlayersObjsDirtyClean(teamDepthUrl)
+    pffPlayers = cfbPlayersCol.find({"team_name" :teamPff}, {"name":1, "_id":0})
+    pffPlayers = [doc['name'] for doc in pffPlayers]
+
+    playerObjs = []
+
+    for pffPlayer in pffPlayers:
+        for olPlayer in ourlandsPlayersObjsDirtyClean:
+            olCleanLower = olPlayer['clean'].lower()
+            olDirty = olPlayer['dirty']
+            score = fuzz.ratio(pffPlayer, olCleanLower)
+            if score > 85.0:
+                playerObj = {}
+                playerObj["olClean"] = olCleanLower
+                playerObj["olDirty"] = olDirty
+                playerObj["pff"] = pffPlayer
+                playerObjs.append(playerObj)
+    # for player in playerObjs: pprint.pprint(f"{player}")
+
+    if teamsCol.update_one({"abbr":teamAbbr}, {"$set" : {"olPffNames": playerObjs }}):
+        print(f"UPDATED : {teamAbbr}")
+        time.sleep(5)
+
+def updatePffOlPlayerNames():
+    teamDocs = teamsCol.find()
+    startDoing = False
+    for teamDoc in teamDocs:
+        try:
+            pffTeamName = teamDoc['pffTeamName']
+            teamAbbr = teamDoc['abbr']
+            depthChartUrl = teamDoc['depthChart']
+
+            if startDoing:
+                joinPffOurlandsAndInsert(pffTeamName, teamAbbr, depthChartUrl)
+        except KeyError as key_error:
+            print(f"KeyError: Missing key {key_error} in document {teamDoc}")
+        except errors.CursorNotFound:
+            print("CursorNotFound exception caught. The cursor has timed out or is no longer available.")
+        except Exception as e:
+            print(f"failed {teamAbbr} due to error: {e}")
+
 if __name__ == "__main__":
     # matching_files = getTeamSums("neb")
     # print(matching_files)
-    file_path = f'{transPath}/betusCfbPicks/betusCfbPicks-06-20-Wf5FT1OCX8c-bsu.txt'
-    names = extract_names_from_file(file_path)
-    print(names)
+    # file_path = f'{transPath}/betusCfbPicks/betusCfbPicks-06-20-Wf5FT1OCX8c-bsu.txt'
+    # names = extract_names_from_file(file_path)
+    # positions = ['QB', 'S', 'T', 'TE', 'WR', 'ED', 'G', 'HB', 'LB', 'K', 'P', 'C', 'DI', 'CB']
+    # insertPlayersMongo('K')
+    print('hi')

@@ -3,6 +3,7 @@ import argparse
 import pprint
 import shlex
 import requests
+import json
 
 def parse_curl_command(curl_command, position):
     # Split the cURL command into arguments
@@ -63,18 +64,19 @@ def getPlayers():
     response = requests.get(url, headers=headers)
     
     if response:
-        json = response.json()
+        jsonResp = response.json()
 
-        players = json['players']
+        players = jsonResp['players']
         cleanPlayerObjs = []
 
         for player in players:
-            #remove None values and if the player hasnt been drafted
-            cleanPlayerObj = {k: v for k, v in player.items() if v is not None and k != 'draft'}
-            cleanPlayerObjs.append(cleanPlayerObj)
+            if not player['draft']:
+                cleanPlayerObj = {k: v for k, v in player.items() if v is not None}
+                cleanPlayerObjs.append(cleanPlayerObj)
 
-        for player in cleanPlayerObjs:
-            pprint.pprint(player)
+        file_path = f'{args.position}.json'
+        with open(file_path, 'w') as json_file:
+            json.dump(cleanPlayerObjs, json_file, indent=4)
 
 if __name__ == "__main__":
     getPlayers()

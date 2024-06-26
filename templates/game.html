@@ -74,10 +74,33 @@
         white-space: pre-wrap;
         word-wrap: break-word;
       }
+      .currentWeather {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f4f4f4;
+        }
+        .weather-item {
+            margin-right: 20px;
+        }
+        .weather-item:last-child {
+            margin-right: 0;
+        }
     </style>
   </head>
 
   <body>
+    {% if currentWeather %}
+    <div class="currentWeather">
+      <div class="weather-item"><strong>Wind:</strong> {{ currentWeather['wind']['speed'] }}, {{ currentWeather['wind']['deg'] }}°, Gust: {{ currentWeather['wind']['gust'] }}</div>
+      <div class="weather-item"><strong>Temperature:</strong> {{ currentWeather['main']['temp'] }}°F (Feels like: {{ currentWeather['main']['feels_like'] }}°F)</div>
+      <div class="weather-item"><strong>Humidity:</strong> {{ currentWeather['main']['humidity'] }}%</div>
+      {% for weather in currentWeather['weather'] %}
+          <div class="weather-item"><strong>Weather:</strong> {{ weather['main'] }} ({{ weather['description'] }})</div>
+      {% endfor %}
+    </div>
+    {% endif %}
     <h3>{{homeTeam['abbr']}}</h3>
     <a href="{{ homeTeam['sbnation'] }}" target="_blank">sbnation</a> ---
     <a

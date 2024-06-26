@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
+from utils import getPffPlayerObj
 
 def getPlayerYoutubeSearchString(depthChartPlayerName):
     normalName = depthChartPlayerName.split(' ')
@@ -7,7 +8,7 @@ def getPlayerYoutubeSearchString(depthChartPlayerName):
 
     return(normalName)
 
-def getNCAADepthHtml(teamOurLandsUrl):
+def getNCAADepthHtml(teamOurLandsUrl, teamAbbr, pffTeamName):
 	try:
 		r = requests.get(teamOurLandsUrl)
 		soup = BeautifulSoup(r.text, 'html.parser')
@@ -31,10 +32,18 @@ def getNCAADepthHtml(teamOurLandsUrl):
 
 			# google search
 			newEl = soup.new_tag('a', attrs={"href":f"https://www.google.com/search?hl=en&gl=us&tbm=nws&authuser=0&as_qdr=m&q={playerSearchStr} football"})
-			newEl.string = "goog"
+			newEl.string = "goog "
 			td.append(newEl)
 
-			# TODO get pff ranking and 247 rating clicks
+			try:
+				pffPlayerObj = getPffPlayerObj(playerName, teamAbbr, pffTeamName)
+				gradesToShow = pffPlayerObj['gradesToShow']
+				gradesToShowString = ' '.join([f'{key}: {value}' for key, value in gradesToShow.items()]) 
+				pffEl = soup.new_tag('span')
+				pffEl.string = gradesToShowString
+				td.append(pffEl)
+			except Exception as e:
+				pass
 
 		[s.extract() for s in soup('th')]
 
@@ -45,7 +54,8 @@ def getNCAADepthHtml(teamOurLandsUrl):
 		for link in links: link['target'] = '_blank'
 
 		return table
-	except:
+	except Exception  as e:
+		print(e)
 		empty_span_html = '<span></span>'
 		soup = BeautifulSoup(empty_span_html, 'html.parser')
 		return soup
