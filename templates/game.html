@@ -5,64 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ awayTeam["abbr"] }}@{{ homeTeam["abbr"] }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <script>
-      function deleteBeatWriter(beatWriter, team) {
-        const url = new URL("http://127.0.0.1:5000/beatWriters");
-        const params = { team, beatWriter };
-        url.search = new URLSearchParams(params).toString();
 
-        fetch(url, { method: "DELETE" })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
-            return response.text();
-          })
-          .then((data) => {
-            if (data === "success") {
-              alert("removed beat writer");
-            } else {
-              alert("didnt remove beat writer");
-            }
-          })
-          .catch((error) => {
-            console.error(
-              "There has been a problem with your fetch operation:",
-              error
-            );
-          });
-      }
-
-      function deleteNote(note, team, elementId) {
-        const url = new URL("http://127.0.0.1:5000/notes");
-        const params = { team, note };
-        url.search = new URLSearchParams(params).toString();
-
-        fetch(url, { method: "DELETE" })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
-            return response.text();
-          })
-          .then((data) => {
-            if (data === "success") {
-              const element = document.getElementById(elementId);
-              if (element) {
-                element.parentNode.removeChild(element);
-              }
-            } else {
-              alert("nope sorry");
-            }
-          })
-          .catch((error) => {
-            console.error(
-              "There has been a problem with your fetch operation:",
-              error
-            );
-          });
-      }
-    </script>
     <style>
       .flex-container {
         display: flex;
@@ -158,13 +101,17 @@
                   </button>
               </h2>
           </div>
-          {% for fileDoc in homeTeam['tranFilesNames'] %}
-            <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
-              <div class="card-body">
-                <a href="{{ngrokDomain}}/trans/{{fileDoc['path']}}" target="_blank">{{fileDoc['fileName']}}</a>
+          {% if homeTeam['tranFilesNames'] is defined and homeTeam['tranFilesNames'] %}
+            {% for fileDoc in homeTeam['tranFilesNames'] %}
+              {% set filePath = fileDoc['path'] %}
+              <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
+                <div class="card-body">
+                  <a href="{{ngrokDomain}}/trans/{{fileDoc['path']}}" target="_blank">{{fileDoc['fileName']}}</a>
+                  <button onclick="changeFileName('{{ filePath }}')">RM</button>
+                </div>
               </div>
-            </div>
-          {% endfor %}
+            {% endfor %}
+          {% endif %}
       </div>
       <div class="card">
           <div class="card-header" id="headingEight">
@@ -174,13 +121,17 @@
                   </button>
               </h2>
           </div>
+          {% if homeTeam['sumFilesNames'] is defined and homeTeam['sumFilesNames'] %}
           {% for fileDoc in homeTeam['sumFilesNames'] %}
+            {% set filePath = fileDoc['path'] %}
             <div id="collapseEight" class="collapse" aria-labelledby="headingEight" data-parent="#accordionExample">
               <div class="card-body">
                 <a href="{{ngrokDomain}}/sums/{{fileDoc['path']}}" target="_blank">{{fileDoc['fileName']}}</a>
+                <button onclick="changeFileName('{{ filePath }}')">RM</button>
               </div>
             </div>
           {% endfor %}
+          {% endif %}
       </div>
     </div>
     <br />
@@ -243,13 +194,17 @@
                   </button>
               </h2>
           </div>
-          {% for fileDoc in awayTeam['tranFilesNames'] %}
-            <div id="collapseSix" class="collapse" aria-labelledby="headingSix" data-parent="#accordionExample">
-              <div class="card-body">
-                <a href="{{ngrokDomain}}/trans/{{fileDoc['path']}}" target="_blank">{{fileDoc['fileName']}}</a>
+          {% if awayTeam['tranFilesNames'] is defined and awayTeam['tranFilesNames'] %}
+            {% for fileDoc in awayTeam['tranFilesNames'] %}
+              {% set filePath = fileDoc['path'] %}
+              <div id="collapseSix" class="collapse" aria-labelledby="headingSix" data-parent="#accordionExample">
+                <div class="card-body">
+                  <a href="{{ngrokDomain}}/trans/{{fileDoc['path']}}" target="_blank">{{fileDoc['fileName']}}</a>
+                  <button onclick="changeFileName('{{ filePath }}')">RM</button>
+                </div>
               </div>
-            </div>
-          {% endfor %}
+            {% endfor %}
+          {% endif %}
       </div>
       <div class="card">
           <div class="card-header" id="headingSeven">
@@ -259,16 +214,103 @@
                   </button>
               </h2>
           </div>
+          {% if awayTeam['sumFilesNames'] is defined and awayTeam['sumFilesNames'] %}
           {% for fileDoc in awayTeam['sumFilesNames'] %}
+            {% set filePath = fileDoc['path'] %}
             <div id="collapseSeven" class="collapse" aria-labelledby="headingSeven" data-parent="#accordionExample">
               <div class="card-body">
                 <a href="{{ngrokDomain}}/sums/{{fileDoc['path']}}" target="_blank">{{fileDoc['fileName']}}</a>
+                <button onclick="changeFileName('{{ filePath }}')">RM</button>
               </div>
             </div>
           {% endfor %}
+          {% endif %}
       </div>
     </div>
 
+  <script>
+    function deleteBeatWriter(beatWriter, team) {
+      const url = new URL("http://127.0.0.1:5000/beatWriters");
+      const params = { team, beatWriter };
+      url.search = new URLSearchParams(params).toString();
+
+      fetch(url, { method: "DELETE" })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.text();
+        })
+        .then((data) => {
+          if (data === "success") {
+            alert("removed beat writer");
+          } else {
+            alert("didnt remove beat writer");
+          }
+        })
+        .catch((error) => {
+          console.error(
+            "There has been a problem with your fetch operation:",
+            error
+          );
+        });
+    }
+
+    function deleteNote(note, team, elementId) {
+      const url = new URL("http://127.0.0.1:5000/notes");
+      const params = { team, note };
+      url.search = new URLSearchParams(params).toString();
+
+      fetch(url, { method: "DELETE" })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.text();
+        })
+        .then((data) => {
+          if (data === "success") {
+            const element = document.getElementById(elementId);
+            if (element) {
+              element.parentNode.removeChild(element);
+            }
+          } else {
+            alert("nope sorry");
+          }
+        })
+        .catch((error) => {
+          console.error(
+            "There has been a problem with your fetch operation:",
+            error
+          );
+        });
+    }
+
+    function changeFileName(filename) {
+      if (confirm("Are you sure you want to proceed?")) {
+        let parts = filename.split('/');
+        let cleanFilename = parts.slice(1).join('/');
+        const url = new URL(`https://manatee-clever-ray.ngrok-free.app/changeFileName/${cleanFilename}`);
+
+        fetch(url, { method: "POST" })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.text();
+          })  
+          .catch((error) => {
+            console.error(
+              "There has been a problem with your fetch operation:",
+              error
+            );
+          });
+      } else {
+        console.log("Action cancled")
+      }
+
+    }
+  </script>
   <!-- Bootstrap JS and dependencies -->
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>

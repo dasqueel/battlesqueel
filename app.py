@@ -1,8 +1,10 @@
 from flask import Markup, render_template, jsonify, Flask, request, send_file, send_from_directory, render_template_string, abort
+from flask_cors import CORS
 from pymongo import MongoClient
 from helpers.depthChart import *
 # from helpers.tweeter import *
 import os
+import re
 from pathlib import Path
 import certifi
 from utils import getTeamTrans, getSteele, getTeamSums, extract_names_from_file
@@ -21,9 +23,11 @@ mongoClient = MongoClient(mongoUrl, tlsCAFile=ca)
 bsDb = mongoClient.bettor
 podTransCol = bsDb['podTrans']
 cfbPlayersCol = bsDb['cfbPlayers']
+teamsCol = bsDb['teams']
 
 app = Flask(__name__)
 app.secret_key = os.getenv('APP_SECRET')
+CORS(app)
 
 @app.route('/')
 def home():
@@ -68,7 +72,7 @@ def game_urls(weekNum):
     
     return render_template_string(html_content, weekNum=weekNum, urls=urls)
 
-@app.route('/<gameId>')
+@app.route('/game/<gameId>')
 def game(gameId):
     homeTeam = {}
     awayTeam = {}
@@ -134,7 +138,9 @@ def game(gameId):
             return render_template('game.html', homeTeam=homeTeam, awayTeam=awayTeam, currentWeather=currentWeather, ngrokDomain=ngrokDomain)
         else:
             return render_template('game.html', homeTeam=homeTeam, awayTeam=awayTeam, currentWeather=None, ngrokDomain=ngrokDomain)
-    except:pass
+    except Exception as e:
+        print(e)
+        return(e)
 
 @app.route('/team/<teamAbbr>')
 def team(teamAbbr):
@@ -170,6 +176,57 @@ def note():
         return("success")
     else:
         return("nope")
+
+@app.route('/changeFileName/<filename>', methods=["POST"])
+def changeFileName(filename):
+    teamAbbrs = [team['abbr'] for team in teamsCol.find({}, {"abbr": 1, "_id": 0})]
+    
+    hasModel = False
+    cleanTransFileName = None
+    if '-gemini' in filename:
+        cleanTransFileName = filename.replace("-gemini", "")
+        hasModel = True
+    if not filename.lower().endswith('.txt'):
+        filename += '.txt'
+    
+    parent_dir = filename.split('-')[0]
+    summary_dir = os.path.join(sumsPath, parent_dir)
+    transcript_dir = os.path.join(transPath, parent_dir)
+    
+    if cleanTransFileName:
+        fullFileTrans = os.path.join(transcript_dir, cleanTransFileName)
+    else:
+        fullFileTrans = os.path.join(transcript_dir, filename)
+    
+    if hasModel:
+        fullFileSum = os.path.join(summary_dir, filename)
+    else:
+        # this adds -gemini to trans | WHEN deleting from summaries RM button    
+        splits = filename.split(".")
+        addedModelFileName = f"{splits[0]}-gemini.txt"
+        fullFileSum = f"{summary_dir}/{addedModelFileName}"
+   
+    file_paths = []
+    if os.path.exists(fullFileTrans):
+        file_paths.append(fullFileTrans)
+    if os.path.exists(fullFileSum):
+        file_paths.append(fullFileSum)
+    
+    if not file_paths:
+        abort(404, description="File not found")
+   
+    new_filename = filename
+    for abbr in teamAbbrs:
+        pattern = f'-{abbr}(?!.*-{abbr})'
+        new_filename = re.sub(pattern, '', new_filename)
+   
+    if new_filename != filename:
+        for file_path in file_paths:
+            new_file_path = os.path.join(os.path.dirname(file_path), new_filename)
+            os.rename(file_path, new_file_path)
+            # print("would update")
+   
+    return "updated"
 
 @app.route('/beatWriters', methods=["DELETE"])
 def beatwriter():

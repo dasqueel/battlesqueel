@@ -143,8 +143,6 @@ def getCurrentWeather(team):
     lat=fbs_stadiums_dict[team]['latitude']
     lon=fbs_stadiums_dict[team]['longitude']
 
-    print(lat, lon)
-
     url = f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={openWeatherKey}&units=imperial'
     response = requests.get(url)
     json = response.json()
@@ -178,5 +176,5 @@ def createStadiumMap():
     map_fbs.save('fbs_stadiums_map.html')
 
 if __name__ == "__main__":
-    currentWeather = getCurrentWeather("Wyoming")
+    currentWeather = getCurrentWeather("Maryland")
     print(currentWeather)

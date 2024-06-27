@@ -6,6 +6,7 @@ import os
 from pymongo import MongoClient
 
 mongoUrl = os.getenv('battlesqueelMongoUrl')
+ngrokDomain = os.getenv('ngrokDomain')
 mongoClient = MongoClient(mongoUrl)
 bsDb = mongoClient.bettor
 teamsCol = bsDb['teams']
@@ -111,11 +112,9 @@ def getWeekGamesUrls(gamesList):
             myAwayNameDict = find_school_by_name(school_names, awayTeam)
             if myAwayNameDict:
                 myAwayName = myAwayNameDict['otherName']
-                # print(awayTeam, myAwayNameDict)
                 awayTeamDoc = teamsCol.find_one({"school":myAwayName})
                 if awayTeamDoc:
                     awayTeamAbbr = awayTeamDoc['abbr']
-                    # print(myAwayName, awayTeamDoc['abbr'])
         else:
             awayTeamAbbr = awayTeamDoc['abbr']
         if not homeTeamDoc: 
@@ -129,8 +128,7 @@ def getWeekGamesUrls(gamesList):
             homeTeamAbbr = homeTeamDoc['abbr']
 
         if awayTeamAbbr and homeTeamAbbr:
-            gameUrl = f"http://127.0.0.1:7000/{awayTeamAbbr}@{homeTeamAbbr}"
-            # print(gameUrl)
+            gameUrl = f"{ngrokDomain}/game/{awayTeamAbbr}@{homeTeamAbbr}"
             gameUrls.append(gameUrl)
 
     return gameUrls
