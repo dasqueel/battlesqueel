@@ -35,15 +35,30 @@ def getNCAADepthHtml(teamOurLandsUrl, teamAbbr, pffTeamName):
 			newEl.string = "goog "
 			td.append(newEl)
 
+			# pff grades
 			try:
 				pffPlayerObj = getPffPlayerObj(playerName, teamAbbr, pffTeamName)
 				gradesToShow = pffPlayerObj['gradesToShow']
 				gradesToShowString = ' '.join([f'{key}: {value}' for key, value in gradesToShow.items()]) 
 				pffEl = soup.new_tag('span')
-				pffEl.string = gradesToShowString
+				pffEl.string = f"{gradesToShowString} - "
 				td.append(pffEl)
 			except Exception as e:
 				pass
+
+			# Create and append the notesTrigger span
+			notesEl = soup.new_tag('span', id=f'notesTrigger{playerName}', **{'class': 'notesTrigger'})
+			notesEl.string = "Notes"
+			td.append(notesEl)
+
+			# Create the notesModal div
+			notesModal = soup.new_tag('div', id=f'notesModal{playerName}', **{'class': 'modal'})
+			notesModalContent = soup.new_tag('div', **{'class': 'modal-content'})
+			pTag = soup.new_tag('p')
+			pTag.string = f"{playerName}\n some notes\n another note"
+			notesModalContent.append(pTag)
+			notesModal.append(notesModalContent)
+			td.append(notesModal)
 
 		[s.extract() for s in soup('th')]
 

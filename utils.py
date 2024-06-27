@@ -144,9 +144,9 @@ def getOurlandsPlayersObjsDirtyClean(teamDepthUrl):
 
 def getPffPlayerObj(olDirtyName, teamAbbr, pffTeamName):
     teamDoc = teamsCol.find_one({"abbr":teamAbbr})
-    playerNamesTranslationsObjs= teamDoc['olPffNames']
-    pffPlayerNameObj = next((d for d in playerNamesTranslationsObjs if d.get("olDirty") == olDirtyName), None)
-
+    olPffNamesDict = teamDoc['olPffNameDict']
+    # pffPlayerNameObj = next((d for d in playerNamesTranslationsObjs if d.get("olDirty") == olDirtyName), None)
+    pffPlayerNameObj = olPffNamesDict[olDirtyName]
     pffPlayerObj = cfbPlayersCol.find_one({"team_name": pffTeamName, "name": pffPlayerNameObj['pff']})
 
     playerPos = pffPlayerObj['position']
@@ -243,6 +243,25 @@ def getPffPlayerObj(olDirtyName, teamAbbr, pffTeamName):
     
     return(pffPlayerObj)
 
+def updateOlPffDocs():
+    # teamDoc = teamsCol.find_one({"abbr":"mia"})
+    teamDocs = teamsCol.find({"olPffNames": {"$exists": True}})
+    # print(olPffObjs)
+    for teamDoc in teamDocs:
+        olPffObjs = teamDoc['olPffNames']
+        teamAbbr = teamDoc['abbr']
+        newPffObj = {}
+        for olPffObj in olPffObjs:
+            newPffObj[olPffObj['olDirty']] = {
+                'olDirty' : olPffObj['olDirty'],
+                'olClean' : olPffObj['olClean'],
+                'pff' : olPffObj['pff']
+            }
+
+        # pprint.pprint(newPffObj)
+        if teamsCol.update_one({"abbr":teamAbbr}, {"$set" : {"olPffNameDict": newPffObj }}):
+            print(f"UPDATED : {teamAbbr}")
+
 def joinPffOurlandsAndInsert(teamPff, teamAbbr, teamDepthUrl):
     ourlandsPlayersObjsDirtyClean = getOurlandsPlayersObjsDirtyClean(teamDepthUrl)
     pffPlayers = cfbPlayersCol.find({"team_name" :teamPff}, {"name":1, "_id":0})
@@ -293,3 +312,4 @@ if __name__ == "__main__":
     # positions = ['QB', 'S', 'T', 'TE', 'WR', 'ED', 'G', 'HB', 'LB', 'K', 'P', 'C', 'DI', 'CB']
     # insertPlayersMongo('K')
     print('hi')
+    # updateOlPffDocs()
