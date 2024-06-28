@@ -80,26 +80,34 @@ function changeFileName(filename) {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-  var notesTriggers = document.querySelectorAll(".notesTrigger");
+    var notesTriggers = document.querySelectorAll(".notesTrigger");
 
-  notesTriggers.forEach(function(trigger) {
-      var id = trigger.id.replace('notesTrigger', '');
-      var notesModal = document.getElementById('notesModal' + id);
+    notesTriggers.forEach(function(trigger) {
+        var id = trigger.id.replace('notesTrigger', '');
+        var notesModal = document.getElementById('notesModal' + id);
+        var hideTimeout;
 
-      trigger.addEventListener("mouseover", function() {
-          notesModal.style.display = "block";
-      });
+        trigger.addEventListener("mouseover", function() {
+            clearTimeout(hideTimeout); // Clear any existing timeout
+            notesModal.style.display = "block";
+        });
 
-      trigger.addEventListener("mouseout", function() {
-          notesModal.style.display = "none";
-      });
+        trigger.addEventListener("mouseout", function() {
+            hideTimeout = setTimeout(function() {
+                notesModal.style.display = "none";
+            }, 300);
+        });
 
-      notesModal.addEventListener("mouseover", function() {
-          notesModal.style.display = "block";
-      });
+        notesModal.addEventListener("mouseover", function() {
+            clearTimeout(hideTimeout); // Clear any existing timeout
+            notesModal.style.display = "block";
+        });
 
-      notesModal.addEventListener("mouseout", function() {
-          notesModal.style.display = "none";
-      });
-  });
+        notesModal.addEventListener("mouseout", function() {
+            hideTimeout = setTimeout(function() {
+                notesModal.style.display = "none";
+            }, 300);
+        });
+    });
 });
+

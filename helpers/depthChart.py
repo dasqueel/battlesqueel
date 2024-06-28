@@ -55,7 +55,7 @@ def getNCAADepthHtml(teamOurLandsUrl, teamAbbr, pffTeamName):
 			notesModal = soup.new_tag('div', id=f'notesModal{playerName}', **{'class': 'modal'})
 			notesModalContent = soup.new_tag('div', **{'class': 'modal-content'})
 			pTag = soup.new_tag('p')
-			pTag.string = f"{playerName}\n some notes\n another note"
+			pTag.string = f"{playerName}\n some notes\n another note\n some notes\n another note\n some notes\n another note\n some notes\n another note\n some notes\n another note\n some notes\n another note\n some notes\n another note\n some notes\n another note\n some notes\n another note"
 			notesModalContent.append(pTag)
 			notesModal.append(notesModalContent)
 			td.append(notesModal)
